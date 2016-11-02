@@ -341,6 +341,7 @@ var FormAsModel = (function (_Form) {
             });
             forms.forEach(function (f) {
                 try {
+                    if (_this5[f.key] == null) return;
                     _this5[f.key].validate();
                 } catch (err) {
                     shouldThrow = true;
@@ -352,6 +353,7 @@ var FormAsModel = (function (_Form) {
             formArrays.forEach(function (f) {
                 _this5[f.key].forEach(function (d) {
                     try {
+                        if (d == null) return;
                         d.validate();
                     } catch (err) {
                         shouldThrow = true;

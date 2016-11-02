@@ -187,6 +187,18 @@ describe("form for", () => {
     assert((cs[0].b as FormForType<any>).validation["field2"] != "", "cs[0].b.field2 is valid");
   });
 
+  it("can validate with nulls", () => {
+    const instance = formForModelEWithValidation(null);
+
+    instance.hey = "ok";
+
+    // we shouldn't have to validate these
+    instance.b = null
+    instance.cs.push(null);
+
+    instance.validate();
+  });
+
   /*
   it("can create sub forms from arrays and not modify", () => {
     const origData = {

@@ -285,6 +285,8 @@ export class FormAsModel<ModelT> extends Form {
     const forms = this._fields.filter(f => f.fieldType == FieldType.Form);
     forms.forEach(f => {
       try {
+        if (this[f.key] == null) return;
+
         this[f.key].validate();
       } catch(err) {
         shouldThrow = true;
@@ -295,6 +297,8 @@ export class FormAsModel<ModelT> extends Form {
     formArrays.forEach(f => {
       this[f.key].forEach(d => {
         try {
+          if (d == null) return;
+
           (d as FormAsModel<any>).validate();
         } catch(err) {
           shouldThrow = true;

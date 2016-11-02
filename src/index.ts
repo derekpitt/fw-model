@@ -254,6 +254,8 @@ export class FormAsModel<ModelT> extends Form {
 
     const forms = this._fields.filter(f => f.fieldType == FieldType.Form);
     forms.forEach(f => {
+      if (this[f.key] == null) return;
+
       data[f.key] = (this[f.key] as FormAsModel<any>).updatedModel();
     });
 
@@ -262,6 +264,8 @@ export class FormAsModel<ModelT> extends Form {
       data[f.key] = [];
 
       this[f.key].forEach(d => {
+        if (d == null) return;
+
         data[f.key].push((d as FormAsModel<any>).updatedModel());
       });
     });

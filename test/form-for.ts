@@ -92,6 +92,16 @@ describe("form for", () => {
     assert(updated.b.field2 == "hey now");
   });
 
+  it("can handle nulls in updatedModel", () => {
+    const instance = formForModelC(null);
+
+    instance.b = null;
+
+    const updated = instance.updatedModel();
+
+    assert(updated.b == null);
+  });
+
   it("can create sub forms and not modify", () => {
     const origData = {
       hey: "hey",

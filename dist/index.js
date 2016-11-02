@@ -310,6 +310,7 @@ var FormAsModel = (function (_Form) {
                 return f.fieldType == FieldType.Form;
             });
             forms.forEach(function (f) {
+                if (_this4[f.key] == null) return;
                 data[f.key] = _this4[f.key].updatedModel();
             });
             var formArrays = this._fields.filter(function (f) {
@@ -318,6 +319,7 @@ var FormAsModel = (function (_Form) {
             formArrays.forEach(function (f) {
                 data[f.key] = [];
                 _this4[f.key].forEach(function (d) {
+                    if (d == null) return;
                     data[f.key].push(d.updatedModel());
                 });
             });

@@ -164,10 +164,30 @@ export class Form {
 
     const results = validateModel(this, this._fields);
 
+    let shouldThrow = false;
+
     if (results.length > 0) {
       results.forEach(v => this.validation[v.field] = v.message);
-      throw new Error("Not Valid");
+      shouldThrow = true;
     }
+
+    const onValidator = (this as any).onValidate;
+    if (onValidator && typeof onValidator == 'function') {
+      const adder = (messageOrField: string, message?: string) => {
+        if (message != undefined) {
+          this.validation[messageOrField] = message;
+        } else {
+          this.validationMessages.push(messageOrField);
+        }
+
+        shouldThrow = true;
+      };
+
+      onValidator.call(this, adder);
+    }
+
+    if (shouldThrow)
+      throw new Error("Not Valid");
   }
 
   public clearValidation() {

@@ -183,12 +183,26 @@ var Form = (function () {
 
             this.clearValidation();
             var results = validateModel(this, this._fields);
+            var shouldThrow = false;
             if (results.length > 0) {
                 results.forEach(function (v) {
                     return _this2.validation[v.field] = v.message;
                 });
-                throw new Error("Not Valid");
+                shouldThrow = true;
             }
+            var onValidator = this.onValidate;
+            if (onValidator && typeof onValidator == 'function') {
+                var adder = function adder(messageOrField, message) {
+                    if (message != undefined) {
+                        _this2.validation[messageOrField] = message;
+                    } else {
+                        _this2.validationMessages.push(messageOrField);
+                    }
+                    shouldThrow = true;
+                };
+                onValidator.call(this, adder);
+            }
+            if (shouldThrow) throw new Error("Not Valid");
         }
     }, {
         key: "clearValidation",

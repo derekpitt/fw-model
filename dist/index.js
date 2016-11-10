@@ -202,11 +202,15 @@ var Form = (function () {
                 };
                 onValidator.call(this, adder);
             }
-            if (shouldThrow) throw new Error("Not Valid");
+            if (shouldThrow) {
+                this.isInvalid = true;
+                throw new Error("Not Valid");
+            }
         }
     }, {
         key: "clearValidation",
         value: function clearValidation() {
+            this.isInvalid = false;
             for (var k in this.validation) {
                 this.validation[k] = "";
             }
@@ -374,7 +378,10 @@ var FormAsModel = (function (_Form) {
                     }
                 });
             });
-            if (shouldThrow) throw new Error("Not Valid");
+            if (shouldThrow) {
+                this.isInvalid = true;
+                throw new Error("Not Valid");
+            }
         }
     }]);
 

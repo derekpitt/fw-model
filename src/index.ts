@@ -139,6 +139,8 @@ export function validateModel(model: any, fields: Field[]): ValidationResult[] {
 export class Form {
   public validationMessages: string[] = [];
   public validation: { [key: string]: string } = {};
+  public isInvalid: boolean;
+
 	protected _fields: Field[] = [];
 
   constructor(data = null, fields: Field[] = null) {
@@ -186,11 +188,15 @@ export class Form {
       onValidator.call(this, adder);
     }
 
-    if (shouldThrow)
+    if (shouldThrow) {
+      this.isInvalid = true;
       throw new Error("Not Valid");
+    }
   }
 
   public clearValidation() {
+    this.isInvalid = false;
+
     for (let k in this.validation) {
       this.validation[k] = "";
     }
@@ -326,7 +332,10 @@ export class FormAsModel<ModelT> extends Form {
       });
     });
 
-    if (shouldThrow) throw new Error("Not Valid");
+    if (shouldThrow) {
+      this.isInvalid = true;
+      throw new Error("Not Valid");
+    }
   }
 }
 

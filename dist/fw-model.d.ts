@@ -41,6 +41,7 @@ declare module 'fw-model' {
 	    validation: {
 	        [key: string]: string;
 	    };
+	    isInvalid: boolean;
 	    protected _fields: Field[];
 	    constructor(data?: any, fields?: Field[]);
 	    getFieldName(field: string): string;

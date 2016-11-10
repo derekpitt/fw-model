@@ -139,7 +139,7 @@ export function validateModel(model: any, fields: Field[]): ValidationResult[] {
 export class Form {
   public validationMessages: string[] = [];
   public validation: { [key: string]: string } = {};
-  public isInvalid: boolean;
+  public isInvalid: boolean = false;
 
 	protected _fields: Field[] = [];
 

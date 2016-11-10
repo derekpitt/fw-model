@@ -158,6 +158,7 @@ var Form = (function () {
 
         this.validationMessages = [];
         this.validation = {};
+        this.isInvalid = false;
         this._fields = [];
         if (data) Object.assign(this, data);
         if (fields == null) this._fields = getFields(this);else this._fields = fields;

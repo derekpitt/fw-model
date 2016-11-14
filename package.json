@@ -8,11 +8,12 @@
   },
   "author": "",
   "license": "ISC",
+  "typings": "./dist/fw-model.d.ts",
   "devDependencies": {
     "babel-polyfill": "^6.13.0",
     "chai": "^3.5.0",
     "del": "^2.2.1",
-    "dts-generator": "^1.7.0",
+    "dts-generator": "^2.0.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^5.2.1",
     "gulp-clean": "^0.3.2",
@@ -22,7 +23,7 @@
     "istanbul": "^0.4.4",
     "mocha": "^3.0.2",
     "run-sequence": "^1.2.1",
-    "typescript": "1.8.9",
+    "typescript": "^2.0.9",
     "vinyl-paths": "^2.1.0"
   }
 }

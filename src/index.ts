@@ -19,17 +19,35 @@ function setKeyType(target, key, type, isArray = false, isProperty = false) {
   Reflect.set(target.constructor, "model:keyTypes", keyTypes);
 }
 
+const typeUndefinedErrorMessage = "passed in type is undefined. is it defined above the calling class?";
+
 export function fromClass(target, key, descriptor?) {
-  setKeyType(target, key, (Reflect as any).getMetadata("design:type", target, key));
+  const classType = (Reflect as any).getMetadata("design:type", target, key);
+  if (classType === undefined) {
+    console.error("fromClass", typeUndefinedErrorMessage);
+    return;
+  }
+
+  setKeyType(target, key, classType);
 }
 
 export function fromClassArray(arrayType) {
+  if (arrayType === undefined) {
+    console.error("fromClassArray", typeUndefinedErrorMessage);
+    return;
+  }
+
   return function(target, key, descriptor?) {
     setKeyType(target, key, arrayType, true);
   };
 }
 
 export function fromPropertyClass(propertyClass) {
+  if (propertyClass === undefined) {
+    console.error("fromPropertyClass", typeUndefinedErrorMessage);
+    return;
+  }
+
   return function(target, key, descriptor?) {
     setKeyType(target, key, propertyClass, false, true);
   };

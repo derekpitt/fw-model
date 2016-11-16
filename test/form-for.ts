@@ -52,7 +52,7 @@ const formForModelBWithValidation = formFor(ModelB, s => {
 });
 
 const formForModelCWithValidation = formFor(ModelC, s => {
-  s.field(a => a.hey, "Hey Now", Validators.isEmail);
+  s.field(a => a.hey, "Hey Now", Validators.required, Validators.isEmail);
   s.form(a => a.b, "Beee", formForModelBWithValidation);
 });
 

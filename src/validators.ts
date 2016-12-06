@@ -27,3 +27,12 @@ export function isUrl(input: string) {
   if (input == null || input.length == 0) return null;
   return urlRegEx.test(input) ? null : "Not a valid URL";
 }
+
+export function isLength(num: number) {
+  return function(input: string): string {
+    if (input.length < num) {
+      return "Must be at least ${num} characters";
+    }
+    return null;
+  }
+}

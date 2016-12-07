@@ -28,11 +28,9 @@ export function isUrl(input: string) {
   return urlRegEx.test(input) ? null : "Not a valid URL";
 }
 
-export function isLength(num: number) {
+export function isMinLength(input: string, num: number) {
+  if (input == null || input.length == 0) return null;
   return function(input: string): string {
-    if (input.length < num) {
-      return "Must be at least ${num} characters";
-    }
-    return null;
+    return input.length < num ? "Must be at least ${num} characters" : null;
   }
 }

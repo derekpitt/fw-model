@@ -319,6 +319,30 @@ var ModeledFormSetup = (function () {
 
 exports.ModeledFormSetup = ModeledFormSetup;
 
+var _applyModel = function _applyModel(t, applyTo, newModel, fields) {
+    var cloneOfThing = cloneOf(t, newModel);
+    Object.assign(applyTo, cloneOfThing);
+    // do the forms
+    var forms = fields.filter(function (f) {
+        return f.fieldType == FieldType.Form;
+    });
+    forms.forEach(function (form) {
+        applyTo[form.key] = form.formCreator(cloneOfThing[form.key] || null);
+    });
+    // do the forms arrays
+    var formArrays = fields.filter(function (f) {
+        return f.fieldType == FieldType.FormArray;
+    });
+    formArrays.forEach(function (formArray) {
+        applyTo[formArray.key] = [];
+        if (Array.isArray(cloneOfThing[formArray.key])) {
+            cloneOfThing[formArray.key].forEach(function (d) {
+                applyTo[formArray.key].push(formArray.formCreator(d));
+            });
+        }
+    });
+};
+
 var FormAsModel = (function (_Form) {
     _inherits(FormAsModel, _Form);
 
@@ -331,6 +355,12 @@ var FormAsModel = (function (_Form) {
     }
 
     _createClass(FormAsModel, [{
+        key: "applyModel",
+        value: function applyModel(newModel) {
+            this.clearValidation();
+            _applyModel(this._t, this, newModel, this._fields);
+        }
+    }, {
         key: "updatedModel",
         value: function updatedModel() {
             var _this4 = this;
@@ -411,27 +441,7 @@ function formFor(t, setup) {
         setup(mfSetup);
         var fields = mfSetup.getFields();
         var fasm = new FormAsModel(fields, t, thing);
-        var cloneOfThing = cloneOf(t, thing);
-        Object.assign(fasm, cloneOfThing);
-        // do the forms
-        var forms = fields.filter(function (f) {
-            return f.fieldType == FieldType.Form;
-        });
-        forms.forEach(function (form) {
-            fasm[form.key] = form.formCreator(cloneOfThing[form.key] || null);
-        });
-        // do the forms arrays
-        var formArrays = fields.filter(function (f) {
-            return f.fieldType == FieldType.FormArray;
-        });
-        formArrays.forEach(function (formArray) {
-            fasm[formArray.key] = [];
-            if (Array.isArray(cloneOfThing[formArray.key])) {
-                cloneOfThing[formArray.key].forEach(function (d) {
-                    fasm[formArray.key].push(formArray.formCreator(d));
-                });
-            }
-        });
+        _applyModel(t, fasm, thing, fields);
         return fasm;
     };
 }

@@ -60,6 +60,7 @@ declare module 'fw-model' {
 	    private _t;
 	    private _orig;
 	    constructor(fields: Field[], _t: makerOf<ModelT>, _orig: ModelT);
+	    applyModel(newModel: ModelT): void;
 	    updatedModel(): ModelT;
 	    validate(): void;
 	}

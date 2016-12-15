@@ -98,7 +98,7 @@ export function createFrom<T>(cl: makerOf<T>, data: any, parent = null): T {
   return instance;
 }
 
-export type Validator = (input: any, model?: any) => string;
+export type Validator = (input: any, model?: any, settings?: any) => string;
 
 export enum FieldType {
   Field,
@@ -132,7 +132,7 @@ export interface ValidationResult {
   message: string;
 }
 
-export function validateModel(model: any, fields: Field[]): ValidationResult[] {
+export function validateModel(model: any, fields: Field[], settings: any): ValidationResult[] {
   const result: ValidationResult[] = [];
 
   fields.forEach(f => {
@@ -140,7 +140,7 @@ export function validateModel(model: any, fields: Field[]): ValidationResult[] {
 
     if (f.validators) {
       for (let i = 0; i < f.validators.length; i++) {
-        const message = f.validators[i].apply(null, [value, model]);
+        const message = f.validators[i].apply(null, [value, model, settings]);
         if (message != null) {
           result.push({ message, field: f.key });
 
@@ -179,10 +179,10 @@ export class Form {
   }
 
   // returns true if valid
-  public validate() {
+  public validate(settings: any) {
     this.clearValidation();
 
-    const results = validateModel(this, this._fields);
+    const results = validateModel(this, this._fields, settings);
 
     let shouldThrow = false;
 

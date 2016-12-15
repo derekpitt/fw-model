@@ -317,11 +317,11 @@ export class FormAsModel<ModelT> extends Form {
 		return data;
 	}
 
-  validate() {
+  validate(settings?: any) {
     let shouldThrow = false;
 
     try {
-      super.validate();
+      super.validate(settings);
     } catch(err) {
       shouldThrow = true;
     }
@@ -331,7 +331,7 @@ export class FormAsModel<ModelT> extends Form {
       try {
         if (this[f.key] == null) return;
 
-        this[f.key].validate();
+        this[f.key].validate(settings);
       } catch(err) {
         shouldThrow = true;
       }

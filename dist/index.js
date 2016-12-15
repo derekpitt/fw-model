@@ -360,12 +360,12 @@ var FormAsModel = (function (_Form) {
         }
     }, {
         key: "validate",
-        value: function validate() {
+        value: function validate(settings) {
             var _this5 = this;
 
             var shouldThrow = false;
             try {
-                _get(Object.getPrototypeOf(FormAsModel.prototype), "validate", this).call(this);
+                _get(Object.getPrototypeOf(FormAsModel.prototype), "validate", this).call(this, settings);
             } catch (err) {
                 shouldThrow = true;
             }
@@ -375,7 +375,7 @@ var FormAsModel = (function (_Form) {
             forms.forEach(function (f) {
                 try {
                     if (_this5[f.key] == null) return;
-                    _this5[f.key].validate();
+                    _this5[f.key].validate(settings);
                 } catch (err) {
                     shouldThrow = true;
                 }

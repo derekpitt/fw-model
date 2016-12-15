@@ -62,7 +62,7 @@ declare module 'fw-model' {
 	    private _orig;
 	    constructor(fields: Field[], _t: makerOf<ModelT>, _orig: ModelT);
 	    updatedModel(): ModelT;
-	    validate(): void;
+	    validate(settings?: any): void;
 	}
 	export type FormForType<ModelT> = FormAsModel<ModelT> & ModelT;
 	export function formFor<ModelT>(t: makerOf<ModelT>, setup: (s: ModeledFormSetup<ModelT>) => void): (thing: ModelT) => FormForType<ModelT>;

@@ -4,6 +4,7 @@ declare module 'fw-model/validators' {
 	export function isNumber(input: string): string;
 	export function isInteger(input: string): string;
 	export function isUrl(input: string): string;
+	export function isMinLength(input: string, num: number): (input: string) => string;
 
 }
 declare module 'fw-model' {
@@ -16,7 +17,7 @@ declare module 'fw-model' {
 	export function fromCustom(customFunction: (data, parent) => any): (target: any, key: any, descriptor?: any) => void;
 	export function createFromArray<T>(cl: makerOf<T>, data: any[]): T[];
 	export function createFrom<T>(cl: makerOf<T>, data: any, parent?: any): T;
-	export type Validator = (input: any, model?: any) => string;
+	export type Validator = (input: any, model?: any, settings?: any) => string;
 	export enum FieldType {
 	    Field = 0,
 	    Form = 1,
@@ -35,7 +36,7 @@ declare module 'fw-model' {
 	    field: string;
 	    message: string;
 	}
-	export function validateModel(model: any, fields: Field[]): ValidationResult[];
+	export function validateModel(model: any, fields: Field[], settings?: any): ValidationResult[];
 	export class Form {
 	    validationMessages: string[];
 	    validation: {
@@ -45,7 +46,7 @@ declare module 'fw-model' {
 	    protected _fields: Field[];
 	    constructor(data?: any, fields?: Field[]);
 	    getFieldName(field: string): string;
-	    validate(): void;
+	    validate(settings?: any): void;
 	    clearValidation(): void;
 	    protected copyFields(src: any): void;
 	}

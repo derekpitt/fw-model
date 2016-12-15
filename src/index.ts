@@ -132,7 +132,7 @@ export interface ValidationResult {
   message: string;
 }
 
-export function validateModel(model: any, fields: Field[], settings: any): ValidationResult[] {
+export function validateModel(model: any, fields: Field[], settings?: any): ValidationResult[] {
   const result: ValidationResult[] = [];
 
   fields.forEach(f => {
@@ -179,7 +179,7 @@ export class Form {
   }
 
   // returns true if valid
-  public validate(settings: any) {
+  public validate(settings?: any) {
     this.clearValidation();
 
     const results = validateModel(this, this._fields, settings);

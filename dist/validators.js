@@ -8,6 +8,7 @@ exports.isEmail = isEmail;
 exports.isNumber = isNumber;
 exports.isInteger = isInteger;
 exports.isUrl = isUrl;
+exports.isMinLength = isMinLength;
 
 function required(input) {
     if (input == null || input.length == 0) return "Required";
@@ -39,4 +40,11 @@ var urlRegEx = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}
 function isUrl(input) {
     if (input == null || input.length == 0) return null;
     return urlRegEx.test(input) ? null : "Not a valid URL";
+}
+
+function isMinLength(input, num) {
+    if (input == null || input.length == 0) return null;
+    return function (input) {
+        return input.length < num ? "Must be at least ${num} characters" : null;
+    };
 }

@@ -143,13 +143,13 @@ function getFields(target) {
     return Reflect.get(target.constructor, "model:fields") || [];
 }
 
-function validateModel(model, fields) {
+function validateModel(model, fields, settings) {
     var result = [];
     fields.forEach(function (f) {
         var value = model[f.key];
         if (f.validators) {
             for (var i = 0; i < f.validators.length; i++) {
-                var message = f.validators[i].apply(null, [value, model]);
+                var message = f.validators[i].apply(null, [value, model, settings]);
                 if (message != null) {
                     result.push({ message: message, field: f.key });
                     // only take the first one
@@ -193,11 +193,11 @@ var Form = (function () {
         // returns true if valid
     }, {
         key: "validate",
-        value: function validate() {
+        value: function validate(settings) {
             var _this2 = this;
 
             this.clearValidation();
-            var results = validateModel(this, this._fields);
+            var results = validateModel(this, this._fields, settings);
             var shouldThrow = false;
             if (results.length > 0) {
                 results.forEach(function (v) {
@@ -390,12 +390,12 @@ var FormAsModel = (function (_Form) {
         }
     }, {
         key: "validate",
-        value: function validate() {
+        value: function validate(settings) {
             var _this5 = this;
 
             var shouldThrow = false;
             try {
-                _get(Object.getPrototypeOf(FormAsModel.prototype), "validate", this).call(this);
+                _get(Object.getPrototypeOf(FormAsModel.prototype), "validate", this).call(this, settings);
             } catch (err) {
                 shouldThrow = true;
             }
@@ -405,7 +405,7 @@ var FormAsModel = (function (_Form) {
             forms.forEach(function (f) {
                 try {
                     if (_this5[f.key] == null) return;
-                    _this5[f.key].validate();
+                    _this5[f.key].validate(settings);
                 } catch (err) {
                     shouldThrow = true;
                 }
@@ -417,7 +417,7 @@ var FormAsModel = (function (_Form) {
                 _this5[f.key].forEach(function (d) {
                     try {
                         if (d == null) return;
-                        d.validate();
+                        d.validate(settings);
                     } catch (err) {
                         shouldThrow = true;
                     }

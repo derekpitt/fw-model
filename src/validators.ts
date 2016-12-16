@@ -27,3 +27,15 @@ export function isUrl(input: string) {
   if (input == null || input.length == 0) return null;
   return urlRegEx.test(input) ? null : "Not a valid URL";
 }
+
+export function isMinLength(num: number) {
+  return function(input: string) {
+    if (input == null || input.length == 0) return null;
+    return input.length >= num ? null : "Must be at least " + num + " characters";
+  }
+}
+
+export function isChecked(input: any) {
+  if (input == null) return null;
+  return input === true ? null : "Required";
+}

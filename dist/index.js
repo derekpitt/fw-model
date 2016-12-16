@@ -387,7 +387,7 @@ var FormAsModel = (function (_Form) {
                 _this5[f.key].forEach(function (d) {
                     try {
                         if (d == null) return;
-                        d.validate();
+                        d.validate(settings);
                     } catch (err) {
                         shouldThrow = true;
                     }

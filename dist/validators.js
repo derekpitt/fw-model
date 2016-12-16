@@ -43,14 +43,14 @@ function isUrl(input) {
     return urlRegEx.test(input) ? null : "Not a valid URL";
 }
 
-function isMinLength(input, num) {
-    if (input == null || input.length == 0) return null;
+function isMinLength(num) {
     return function (input) {
-        return input.length < num ? "Must be at least ${num} characters" : null;
+        if (input == null || input.length == 0) return null;
+        return input.length >= num ? null : "Must be at least " + num + " characters";
     };
 }
 
 function isChecked(input) {
     if (input == null) return null;
-    return input === false ? 'Required' : null;
+    return input === true ? null : "Required";
 }

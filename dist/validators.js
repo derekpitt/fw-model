@@ -9,6 +9,7 @@ exports.isNumber = isNumber;
 exports.isInteger = isInteger;
 exports.isUrl = isUrl;
 exports.isMinLength = isMinLength;
+exports.isChecked = isChecked;
 
 function required(input) {
     if (input == null || input.length == 0) return "Required";
@@ -47,4 +48,9 @@ function isMinLength(input, num) {
     return function (input) {
         return input.length < num ? "Must be at least ${num} characters" : null;
     };
+}
+
+function isChecked(input) {
+    if (input == null) return null;
+    return input === false ? 'Required' : null;
 }

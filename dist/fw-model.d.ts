@@ -5,6 +5,7 @@ declare module 'fw-model/validators' {
 	export function isInteger(input: string): string;
 	export function isUrl(input: string): string;
 	export function isMinLength(input: string, num: number): (input: string) => string;
+	export function isChecked(input: boolean): string;
 
 }
 declare module 'fw-model' {

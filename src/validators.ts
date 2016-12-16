@@ -34,3 +34,8 @@ export function isMinLength(input: string, num: number) {
     return input.length < num ? "Must be at least ${num} characters" : null;
   }
 }
+
+export function isChecked(input: boolean) {
+  if (input == null) return null;
+  return input === false ? 'Required' : null;
+}

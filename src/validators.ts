@@ -1,3 +1,5 @@
+export type Validator = (input: any, model?: any, settings?: any) => string;
+
 export function required(input: string) {
   if (input == null || input.length == 0) return "Required";
   const hasValue = input.toString().replace(/^\s+/, "").replace(/\s+$/, "").length > 0;

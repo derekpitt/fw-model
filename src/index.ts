@@ -1,3 +1,5 @@
+import { Validator } from "./validators";
+
 export interface makerOf<T> {
   new(...args): T;
 }
@@ -97,8 +99,6 @@ export function createFrom<T>(cl: makerOf<T>, data: any, parent = null): T {
 
   return instance;
 }
-
-export type Validator = (input: any, model?: any, settings?: any) => string;
 
 export enum FieldType {
   Field,

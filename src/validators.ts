@@ -30,12 +30,12 @@ export function isUrl(input: string) {
 
 export function isMinLength(input: string, num: number) {
   if (input == null || input.length == 0) return null;
-  return function(input: string): string {
-    return input.length < num ? "Must be at least ${num} characters" : null;
+  return function(input: string) {
+    return input.length >= num ? null : "Must be at least ${num} characters";
   }
 }
 
-export function isChecked(input: boolean) {
+export function isChecked(input: any) {
   if (input == null) return null;
-  return input === false ? 'Required' : null;
+  return input === true ? null : "Required";
 }

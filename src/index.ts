@@ -343,7 +343,7 @@ export class FormAsModel<ModelT> extends Form {
         try {
           if (d == null) return;
 
-          (d as FormAsModel<any>).validate();
+          (d as FormAsModel<any>).validate(settings);
         } catch(err) {
           shouldThrow = true;
         }

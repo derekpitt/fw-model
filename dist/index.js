@@ -17,6 +17,7 @@ exports.createFrom = createFrom;
 exports.field = field;
 exports.getFields = getFields;
 exports.validateModel = validateModel;
+exports.cloneOf = cloneOf;
 exports.formFor = formFor;
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj["default"] = obj; return newObj; } }
@@ -252,6 +253,7 @@ function cloneOf(modelType, instance) {
     var clonedJson = JSON.parse(JSON.stringify(instance));
     return createFrom(modelType, clonedJson);
 }
+
 // this may need to be hardened for minification... we'll see
 var getFieldNameRegEx = new RegExp("return (.*)[;}]");
 function getFieldName(expr) {

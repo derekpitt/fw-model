@@ -230,7 +230,7 @@ export class Form {
   }
 }
 
-function cloneOf<T>(modelType: makerOf<T>, instance: T): T {
+export function cloneOf<T>(modelType: makerOf<T>, instance: T): T {
 	const clonedJson = JSON.parse(JSON.stringify(instance));
 	return createFrom(modelType, clonedJson);
 }

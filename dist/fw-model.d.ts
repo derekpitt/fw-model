@@ -1,4 +1,5 @@
 declare module 'fw-model/validators' {
+	export type Validator = (input: any, model?: any, settings?: any) => string;
 	export function required(input: string): string;
 	export function isEmail(input: string): string;
 	export function isNumber(input: string): string;
@@ -6,9 +7,9 @@ declare module 'fw-model/validators' {
 	export function isUrl(enforceSSL?: boolean): (input: string) => string;
 	export function isMinLength(num: number): (input: string) => string;
 	export function isChecked(input: any): string;
-
 }
 declare module 'fw-model' {
+	import { Validator } from 'fw-model/validators';
 	export interface makerOf<T> {
 	    new (...args: any[]): T;
 	}
@@ -51,6 +52,7 @@ declare module 'fw-model' {
 	    clearValidation(): void;
 	    protected copyFields(src: any): void;
 	}
+	export function cloneOf<T>(modelType: makerOf<T>, instance: T): T;
 	export class ModeledFormSetup<T> {
 	    private _fields;
 	    field(fs: (obj: T) => any, friendly: string, ...validators: Validator[]): void;
@@ -62,6 +64,7 @@ declare module 'fw-model' {
 	    private _t;
 	    private _orig;
 	    constructor(fields: Field[], _t: makerOf<ModelT>, _orig: ModelT);
+	    applyModel(newModel: ModelT): void;
 	    updatedModel(): ModelT;
 	    validate(settings?: any): void;
 	}

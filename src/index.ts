@@ -1,3 +1,5 @@
+import { Validator } from "./validators";
+
 export interface makerOf<T> {
   new(...args): T;
 }
@@ -230,7 +232,7 @@ export class Form {
   }
 }
 
-function cloneOf<T>(modelType: makerOf<T>, instance: T): T {
+export function cloneOf<T>(modelType: makerOf<T>, instance: T): T {
 	const clonedJson = JSON.parse(JSON.stringify(instance));
 	return createFrom(modelType, clonedJson);
 }
@@ -285,10 +287,41 @@ export class ModeledFormSetup<T> {
 	}
 }
 
+
+const applyModel = <ModelT>(t: makerOf<ModelT>, applyTo: FormAsModel<ModelT>, newModel: ModelT, fields: Field[]) => {
+  const cloneOfThing = cloneOf(t, newModel);
+
+  Object.assign(applyTo, cloneOfThing);
+
+  // do the forms
+  const forms = fields.filter(f => f.fieldType == FieldType.Form);
+  forms.forEach(form => {
+    applyTo[form.key] = form.formCreator(cloneOfThing[form.key] || null);
+  });
+
+  // do the forms arrays
+  const formArrays = fields.filter(f => f.fieldType == FieldType.FormArray);
+  formArrays.forEach(formArray => {
+    applyTo[formArray.key] = [];
+
+    if (Array.isArray(cloneOfThing[formArray.key])) {
+      cloneOfThing[formArray.key].forEach(d => {
+        applyTo[formArray.key].push(formArray.formCreator(d));
+      });
+    }
+  });
+};
+
 export class FormAsModel<ModelT> extends Form {
 	constructor(fields: Field[], private _t: makerOf<ModelT>, private _orig: ModelT) {
 		super(undefined, fields);
 	}
+
+  applyModel(newModel: ModelT) {
+    this.clearValidation();
+
+    applyModel(this._t, this, newModel, this._fields);
+  }
 
 	updatedModel(): ModelT {
 		const data = cloneOf(this._t, this._orig);
@@ -366,27 +399,8 @@ export function formFor<ModelT>(t: makerOf<ModelT>, setup: (s: ModeledFormSetup<
 
     const fields = mfSetup.getFields();
 		const fasm = new FormAsModel<ModelT>(fields, t, thing);
-		const cloneOfThing = cloneOf(t, thing);
 
-		Object.assign(fasm, cloneOfThing);
-
-    // do the forms
-    const forms = fields.filter(f => f.fieldType == FieldType.Form);
-    forms.forEach(form => {
-      fasm[form.key] = form.formCreator(cloneOfThing[form.key] || null);
-    });
-
-    // do the forms arrays
-    const formArrays = fields.filter(f => f.fieldType == FieldType.FormArray);
-    formArrays.forEach(formArray => {
-      fasm[formArray.key] = [];
-
-      if (Array.isArray(cloneOfThing[formArray.key])) {
-        cloneOfThing[formArray.key].forEach(d => {
-          fasm[formArray.key].push(formArray.formCreator(d));
-        });
-      }
-    });
+    applyModel(t, fasm, thing, fields);
 
 		return fasm as FormForType<ModelT>;
 	}

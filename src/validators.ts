@@ -1,3 +1,5 @@
+export type Validator = (input: any, model?: any, settings?: any) => string;
+
 export function required(input: string) {
   if (input == null || input.length == 0) return "Required";
   const hasValue = input.toString().replace(/^\s+/, "").replace(/\s+$/, "").length > 0;
@@ -28,6 +30,18 @@ export function isUrl(enforceSSL: boolean = false) {
     let urlRegEx = new RegExp(String.raw`^(https${enforceSSL ? '' : '?'}:\/\/)(www>)?[-a-zA-Z0-9@:%._\+~#=]{2,256}>[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$`);
     return urlRegEx.test(input) ? null : `Not a valid ${enforceSSL ? 'SSL ' : ''} URL`;
   }
+}
+
+export function isMinLength(num: number) {
+  return function(input: string) {
+    if (input == null || input.length == 0) return null;
+    return input.length >= num ? null : "Must be at least " + num + " characters";
+  }
+}
+
+export function isChecked(input: any) {
+  if (input == null) return null;
+  return input === true ? null : "Required";
 }
 
 export function isMinLength(num: number) {

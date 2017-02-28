@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { formFor, FormForType, FormAsModel, fromClass, fromClassArray, Validators } from "../src/index";
+import { formFor, FormForType, FormAsModel, fromClass, fromClassArray, Validators, createFrom } from "../src/index";
 
 
 class ModelA {
@@ -197,6 +197,35 @@ describe("form for", () => {
     instance.cs.push(null);
 
     instance.validate();
+  });
+
+  it("can apply a new model on top of itself", () => {
+    const old = createFrom(ModelE, {
+      hey: "old",
+      cs: [
+        { hey: "old", b: { field2: "old" } },
+      ],
+      b: {
+       field2: "old",
+      },
+    });
+
+    const newModel = createFrom(ModelE, {
+      hey: "new",
+      cs: [
+        { hey: "new", b: { field2: "new" } },
+      ],
+      b: {
+       field2: "new",
+      },
+    });
+
+    const instance = formForModelEWithValidation(old);
+    instance.applyModel(newModel);
+
+    assert(instance.hey == "new");
+    assert(instance.b instanceof FormAsModel, "instance.b not an instance of a form");
+    assert(instance.cs[0] instanceof FormAsModel, "instance.cs[0] not an instance of a form");
   });
 
   /*

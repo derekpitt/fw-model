@@ -3,7 +3,7 @@ declare module 'fw-model/validators' {
 	export function isEmail(input: string): string;
 	export function isNumber(input: string): string;
 	export function isInteger(input: string): string;
-	export function isUrl(input: string): string;
+	export function isUrl(enforceSSL?: boolean): (input: string) => string;
 	export function isMinLength(num: number): (input: string) => string;
 	export function isChecked(input: any): string;
 

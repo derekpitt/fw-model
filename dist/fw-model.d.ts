@@ -7,6 +7,7 @@ declare module 'fw-model/validators' {
 	export function isUrl(enforceSSL?: boolean): (input: string) => string;
 	export function isMinLength(num: number): (input: string) => string;
 	export function isChecked(input: any): string;
+
 }
 declare module 'fw-model' {
 	import { Validator } from 'fw-model/validators';

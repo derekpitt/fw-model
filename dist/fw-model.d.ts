@@ -4,10 +4,9 @@ declare module 'fw-model/validators' {
 	export function isEmail(input: string): string;
 	export function isNumber(input: string): string;
 	export function isInteger(input: string): string;
-	export function isUrl(input: string): string;
+	export function isUrl(enforceSSL?: boolean): (input: string) => string;
 	export function isMinLength(num: number): (input: string) => string;
 	export function isChecked(input: any): string;
-
 }
 declare module 'fw-model' {
 	import { Validator } from 'fw-model/validators';
@@ -20,6 +19,7 @@ declare module 'fw-model' {
 	export function fromCustom(customFunction: (data, parent) => any): (target: any, key: any, descriptor?: any) => void;
 	export function createFromArray<T>(cl: makerOf<T>, data: any[]): T[];
 	export function createFrom<T>(cl: makerOf<T>, data: any, parent?: any): T;
+	export type Validator = (input: any, model?: any, settings?: any) => string;
 	export enum FieldType {
 	    Field = 0,
 	    Form = 1,

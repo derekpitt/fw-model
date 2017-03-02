@@ -10,6 +10,8 @@ exports.isInteger = isInteger;
 exports.isUrl = isUrl;
 exports.isMinLength = isMinLength;
 exports.isChecked = isChecked;
+var _templateObject = _taggedTemplateLiteral(["^(https", "://)(www>)?[-a-zA-Z0-9@:%._+~#=]{2,256}>[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$"], ["^(https", ":\\/\\/)(www>)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}>[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$"]);
+function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 function required(input) {
     if (input == null || input.length == 0) return "Required";
@@ -36,11 +38,13 @@ function isInteger(input) {
     return isInt ? null : "Not a valid integer";
 }
 
-var urlRegEx = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$/;
-
-function isUrl(input) {
-    if (input == null || input.length == 0) return null;
-    return urlRegEx.test(input) ? null : "Not a valid URL";
+function isUrl() {
+    var enforceSSL = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+    return function (input) {
+        if (input == null || input.length == 0) return null;
+        var urlRegEx = new RegExp(String.raw(_templateObject, enforceSSL ? '' : '?'));
+        return urlRegEx.test(input) ? null : "Not a valid " + (enforceSSL ? 'SSL ' : '') + " URL";
+    };
 }
 
 function isMinLength(num) {

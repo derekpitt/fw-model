@@ -100,6 +100,8 @@ export function createFrom<T>(cl: makerOf<T>, data: any, parent = null): T {
   return instance;
 }
 
+export type Validator = (input: any, model?: any, settings?: any) => string;
+
 export enum FieldType {
   Field,
   Form,

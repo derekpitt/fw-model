@@ -439,6 +439,9 @@ exports.FormAsModel = FormAsModel;
 
 function formFor(t, setup) {
     return function (thing) {
+        if (thing instanceof FormAsModel) {
+            throw new Error("Should not pass an instance of a form to a creator");
+        }
         var mfSetup = new ModeledFormSetup();
         setup(mfSetup);
         var fields = mfSetup.getFields();

@@ -394,6 +394,10 @@ export type FormForType<ModelT> = FormAsModel<ModelT> & ModelT;
 
 export function formFor<ModelT>(t: makerOf<ModelT>, setup: (s: ModeledFormSetup<ModelT>) => void): (thing: ModelT) => FormForType<ModelT> {
 	return (thing: ModelT) => {
+    if (thing instanceof FormAsModel) {
+      throw new Error("Should not pass an instance of a form to a creator");
+    }
+
 		const mfSetup = new ModeledFormSetup<ModelT>();
 		setup(mfSetup);
 

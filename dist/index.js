@@ -12,6 +12,7 @@ exports.fromClass = fromClass;
 exports.fromClassArray = fromClassArray;
 exports.fromPropertyClass = fromPropertyClass;
 exports.fromCustom = fromCustom;
+exports.createFromProperties = createFromProperties;
 exports.createFromArray = createFromArray;
 exports.createFrom = createFrom;
 exports.field = field;
@@ -79,6 +80,14 @@ function fromCustom(customFunction) {
     return function (target, key, descriptor) {
         setKeyType(target, key, new Custom(customFunction));
     };
+}
+
+function createFromProperties(cl, data) {
+    var instance = {};
+    Object.keys(data).forEach(function (dk) {
+        return instance[dk] = createFrom(cl, data[dk]);
+    });
+    return instance;
 }
 
 function createFromArray(cl, data) {

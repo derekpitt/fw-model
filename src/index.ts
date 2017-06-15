@@ -170,7 +170,6 @@ export class Form {
   public isInvalid: boolean = false;
 
 	protected _fields: Field[] = [];
-
   constructor(data = null, fields: Field[] = null) {
     if (data)
       Object.assign(this, data);
@@ -331,6 +330,32 @@ export class FormAsModel<ModelT> extends Form {
     applyModel(this._t, this, newModel, this._fields);
   }
 
+  // formArray fields could be weird in this if the models arew out of sync..
+  // if you do ever call this yourself, make sure
+  // that items haven't been moved around
+  copyValidation(fasm: FormAsModel<ModelT>) {
+    if (fasm == null) return;
+
+    this.validationMessages = fasm.validationMessages;
+    this._fields.forEach(f => this.validation[f.key] = fasm.validation[f.key]);
+
+    const forms = this._fields.filter(f => f.fieldType == FieldType.Form);
+    forms.forEach(f => {
+      if (this[f.key] == null || fasm[f.key] == null) return;
+
+      (this[f.key] as FormAsModel<any>).copyValidation(fasm[f.key]);
+    });
+
+    const formArrays = this._fields.filter(f => f.fieldType == FieldType.FormArray);
+    formArrays.forEach(f => {
+      this[f.key].forEach((d, idx) => {
+        if (fasm[f.key] == null || fasm[f.key][idx] == null) return;
+
+        (d as FormAsModel<any>).copyValidation(fasm[f.key][idx]);
+      });
+    });
+  }
+
 	updatedModel(): ModelT {
 		const data = cloneOf(this._t, this._orig);
 		this._fields.forEach(f => {
@@ -402,8 +427,13 @@ export type FormForType<ModelT> = FormAsModel<ModelT> & ModelT;
 
 export function formFor<ModelT>(t: makerOf<ModelT>, setup: (s: ModeledFormSetup<ModelT>) => void): (thing: ModelT) => FormForType<ModelT> {
 	return (thing: ModelT) => {
+    let oldForm = null;
     if (thing instanceof FormAsModel) {
-      throw new Error("Should not pass an instance of a form to a creator");
+      //throw new Error("Should not pass an instance of a form to a creator");
+
+      // updated model, and also
+      oldForm = thing;
+      thing = thing.updatedModel();
     }
 
 		const mfSetup = new ModeledFormSetup<ModelT>();
@@ -413,6 +443,9 @@ export function formFor<ModelT>(t: makerOf<ModelT>, setup: (s: ModeledFormSetup<
 		const fasm = new FormAsModel<ModelT>(fields, t, thing);
 
     applyModel(t, fasm, thing, fields);
+
+    if (oldForm != null)
+      fasm.copyValidation(oldForm);
 
 		return fasm as FormForType<ModelT>;
 	}

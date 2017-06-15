@@ -371,28 +371,59 @@ var FormAsModel = (function (_Form) {
             this.clearValidation();
             _applyModel(this._t, this, newModel, this._fields);
         }
+
+        // formArray fields could be weird in this if the models arew out of sync..
+        // if you do ever call this yourself, make sure
+        // that items haven't been moved around
     }, {
-        key: "updatedModel",
-        value: function updatedModel() {
+        key: "copyValidation",
+        value: function copyValidation(fasm) {
             var _this4 = this;
 
-            var data = cloneOf(this._t, this._orig);
+            if (fasm == null) return;
+            this.validationMessages = fasm.validationMessages;
             this._fields.forEach(function (f) {
-                data[f.key] = _this4[f.key];
+                return _this4.validation[f.key] = fasm.validation[f.key];
             });
             var forms = this._fields.filter(function (f) {
                 return f.fieldType == FieldType.Form;
             });
             forms.forEach(function (f) {
-                if (_this4[f.key] == null) return;
-                data[f.key] = _this4[f.key].updatedModel();
+                if (_this4[f.key] == null || fasm[f.key] == null) return;
+                _this4[f.key].copyValidation(fasm[f.key]);
+            });
+            var formArrays = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.FormArray;
+            });
+            formArrays.forEach(function (f) {
+                _this4[f.key].forEach(function (d, idx) {
+                    if (fasm[f.key] == null || fasm[f.key][idx] == null) return;
+                    d.copyValidation(fasm[f.key][idx]);
+                });
+            });
+        }
+    }, {
+        key: "updatedModel",
+        value: function updatedModel() {
+            var _this5 = this;
+
+            var data = cloneOf(this._t, this._orig);
+            this._fields.forEach(function (f) {
+                data[f.key] = _this5[f.key];
+            });
+            var forms = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.Form;
+            });
+            forms.forEach(function (f) {
+                if (_this5[f.key] == null) return;
+                data[f.key] = _this5[f.key].updatedModel();
             });
             var formArrays = this._fields.filter(function (f) {
                 return f.fieldType == FieldType.FormArray;
             });
             formArrays.forEach(function (f) {
                 data[f.key] = [];
-                _this4[f.key].forEach(function (d) {
+                _this5[f.key].forEach(function (d) {
                     if (d == null) return;
                     data[f.key].push(d.updatedModel());
                 });
@@ -402,7 +433,7 @@ var FormAsModel = (function (_Form) {
     }, {
         key: "validate",
         value: function validate(settings) {
-            var _this5 = this;
+            var _this6 = this;
 
             var shouldThrow = false;
             try {
@@ -415,8 +446,8 @@ var FormAsModel = (function (_Form) {
             });
             forms.forEach(function (f) {
                 try {
-                    if (_this5[f.key] == null) return;
-                    _this5[f.key].validate(settings);
+                    if (_this6[f.key] == null) return;
+                    _this6[f.key].validate(settings);
                 } catch (err) {
                     shouldThrow = true;
                 }
@@ -425,7 +456,7 @@ var FormAsModel = (function (_Form) {
                 return f.fieldType == FieldType.FormArray;
             });
             formArrays.forEach(function (f) {
-                _this5[f.key].forEach(function (d) {
+                _this6[f.key].forEach(function (d) {
                     try {
                         if (d == null) return;
                         d.validate(settings);
@@ -448,14 +479,19 @@ exports.FormAsModel = FormAsModel;
 
 function formFor(t, setup) {
     return function (thing) {
+        var oldForm = null;
         if (thing instanceof FormAsModel) {
-            throw new Error("Should not pass an instance of a form to a creator");
+            //throw new Error("Should not pass an instance of a form to a creator");
+            // updated model, and also
+            oldForm = thing;
+            thing = thing.updatedModel();
         }
         var mfSetup = new ModeledFormSetup();
         setup(mfSetup);
         var fields = mfSetup.getFields();
         var fasm = new FormAsModel(fields, t, thing);
         _applyModel(t, fasm, thing, fields);
+        if (oldForm != null) fasm.copyValidation(oldForm);
         return fasm;
     };
 }

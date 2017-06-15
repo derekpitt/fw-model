@@ -187,6 +187,26 @@ describe("form for", () => {
     assert((cs[0].b as FormForType<any>).validation["field2"] != "", "cs[0].b.field2 is valid");
   });
 
+  it("can copy over validation when creating from an invalid form", () => {
+    const instance = formForModelEWithValidation(null);
+
+    instance.b = formForModelBWithValidation(null);
+    instance.cs.push(formForModelCWithValidation(null));
+
+    try {
+      instance.validate();
+    } catch (err) { }
+
+    const newInstace = formForModelEWithValidation(instance);
+
+    assert(newInstace.validation["hey"] != "", "hey is valid");
+    assert((newInstace.b as FormForType<any>).validation["field2"] != "", "b.field2 is valid");
+
+    const cs = newInstace.cs as FormForType<any>[];
+    assert(cs[0].validation["hey"] != "", "cs[0].hey is valid");
+    assert((cs[0].b as FormForType<any>).validation["field2"] != "", "cs[0].b.field2 is valid");
+  });
+
   it("can validate with nulls", () => {
     const instance = formForModelEWithValidation(null);
 

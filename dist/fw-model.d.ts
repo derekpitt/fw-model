@@ -18,7 +18,7 @@ declare module 'fw-model' {
 	export function fromClassArray(arrayType: any): (target: any, key: any, descriptor?: any) => void;
 	export function fromPropertyClass(propertyClass: any): (target: any, key: any, descriptor?: any) => void;
 	export function fromCustom(customFunction: (data, parent) => any): (target: any, key: any, descriptor?: any) => void;
-	export function createFromProperties<T>(cl: makerOf<T>, data: any[]): {
+	export function createFromProperties<T>(cl: makerOf<T>, data: any): {
 	    [key: string]: T;
 	};
 	export function createFromArray<T>(cl: makerOf<T>, data: any[]): T[];
@@ -69,6 +69,7 @@ declare module 'fw-model' {
 	    private _orig;
 	    constructor(fields: Field[], _t: makerOf<ModelT>, _orig: ModelT);
 	    applyModel(newModel: ModelT): void;
+	    copyValidation(fasm: FormAsModel<ModelT>): void;
 	    updatedModel(): ModelT;
 	    validate(settings?: any): void;
 	}

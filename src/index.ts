@@ -61,7 +61,7 @@ export function fromCustom(customFunction: (data, parent) => any) {
   };
 }
 
-export function createFromProperties<T>(cl: makerOf<T>, data: any[]): { [key: string]: T } {
+export function createFromProperties<T>(cl: makerOf<T>, data: any): { [key: string]: T } {
   const instance: { [key: string]: T } = {};
 
   Object.keys(data).forEach(dk => instance[dk] = createFrom(cl, data[dk]));

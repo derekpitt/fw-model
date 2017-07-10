@@ -246,7 +246,8 @@ export function cloneOf<T>(modelType: makerOf<T>, instance: T): T {
 
 // this may need to be hardened for minification... we'll see
 const getFieldNameRegEx = new RegExp("return (.*)[;}]");
-function getFieldName<T>(expr: (T) => any): string {
+
+export function nameOf<T>(expr: (T) => any): string {
 	const res = getFieldNameRegEx.exec(expr.toString());
 	if (res == null) throw new Error("Could not get field name");
 
@@ -263,7 +264,7 @@ export class ModeledFormSetup<T> {
 		this._fields.push({
 			friendly,
 			validators,
-			key: getFieldName(fs),
+			key: nameOf(fs),
       fieldType: FieldType.Field,
       formCreator: null,
 		});
@@ -273,7 +274,7 @@ export class ModeledFormSetup<T> {
 		this._fields.push({
 			friendly,
 			validators: [],
-			key: getFieldName(fs),
+			key: nameOf(fs),
       fieldType: FieldType.Form,
       formCreator,
 		});
@@ -283,7 +284,7 @@ export class ModeledFormSetup<T> {
 		this._fields.push({
 			friendly,
 			validators: [],
-			key: getFieldName(fs),
+			key: nameOf(fs),
       fieldType: FieldType.FormArray,
       formCreator,
 		});

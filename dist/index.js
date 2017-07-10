@@ -19,6 +19,7 @@ exports.field = field;
 exports.getFields = getFields;
 exports.validateModel = validateModel;
 exports.cloneOf = cloneOf;
+exports.nameOf = nameOf;
 exports.formFor = formFor;
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj["default"] = obj; return newObj; } }
@@ -265,7 +266,8 @@ function cloneOf(modelType, instance) {
 
 // this may need to be hardened for minification... we'll see
 var getFieldNameRegEx = new RegExp("return (.*)[;}]");
-function getFieldName(expr) {
+
+function nameOf(expr) {
     var res = getFieldNameRegEx.exec(expr.toString());
     if (res == null) throw new Error("Could not get field name");
     // this is limited to actual objects top level properties...
@@ -291,7 +293,7 @@ var ModeledFormSetup = (function () {
             this._fields.push({
                 friendly: friendly,
                 validators: validators,
-                key: getFieldName(fs),
+                key: nameOf(fs),
                 fieldType: FieldType.Field,
                 formCreator: null
             });
@@ -302,7 +304,7 @@ var ModeledFormSetup = (function () {
             this._fields.push({
                 friendly: friendly,
                 validators: [],
-                key: getFieldName(fs),
+                key: nameOf(fs),
                 fieldType: FieldType.Form,
                 formCreator: formCreator
             });
@@ -313,7 +315,7 @@ var ModeledFormSetup = (function () {
             this._fields.push({
                 friendly: friendly,
                 validators: [],
-                key: getFieldName(fs),
+                key: nameOf(fs),
                 fieldType: FieldType.FormArray,
                 formCreator: formCreator
             });

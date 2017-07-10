@@ -57,6 +57,7 @@ declare module 'fw-model' {
 	    protected copyFields(src: any): void;
 	}
 	export function cloneOf<T>(modelType: makerOf<T>, instance: T): T;
+	export function nameOf<T>(expr: (T) => any): string;
 	export class ModeledFormSetup<T> {
 	    private _fields;
 	    field(fs: (obj: T) => any, friendly: string, ...validators: Validator[]): void;

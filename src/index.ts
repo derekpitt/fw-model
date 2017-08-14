@@ -1,7 +1,7 @@
 import { Validator } from "./validators";
 
 export interface makerOf<T> {
-  new(...args): T;
+  new (...args): T;
 }
 
 interface keyType {
@@ -12,16 +12,18 @@ interface keyType {
 }
 
 class Custom {
-  constructor(public cb: (data, parent) => any) { }
+  constructor(public cb: (data, parent) => any) {}
 }
 
 function setKeyType(target, key, type, isArray = false, isProperty = false) {
-  const keyTypes: keyType[] = Reflect.get(target.constructor, "model:keyTypes") || [];
+  const keyTypes: keyType[] =
+    Reflect.get(target.constructor, "model:keyTypes") || [];
   keyTypes.push({ key, type, isArray, isProperty });
   Reflect.set(target.constructor, "model:keyTypes", keyTypes);
 }
 
-const typeUndefinedErrorMessage = "passed in type is undefined. is it defined above the calling class?";
+const typeUndefinedErrorMessage =
+  "passed in type is undefined. is it defined above the calling class?";
 
 export function fromClass(target, key, descriptor?) {
   const classType = (Reflect as any).getMetadata("design:type", target, key);
@@ -61,10 +63,13 @@ export function fromCustom(customFunction: (data, parent) => any) {
   };
 }
 
-export function createFromProperties<T>(cl: makerOf<T>, data: any): { [key: string]: T } {
+export function createFromProperties<T>(
+  cl: makerOf<T>,
+  data: any,
+): { [key: string]: T } {
   const instance: { [key: string]: T } = {};
 
-  Object.keys(data).forEach(dk => instance[dk] = createFrom(cl, data[dk]));
+  Object.keys(data).forEach(dk => (instance[dk] = createFrom(cl, data[dk])));
 
   return instance;
 }
@@ -76,7 +81,7 @@ export function createFromArray<T>(cl: makerOf<T>, data: any[]): T[] {
 export function createFrom<T>(cl: makerOf<T>, data: any, parent = null): T {
   if (cl instanceof Custom) return (cl as any).cb(data, parent);
 
-  const instance = new (Function.prototype.bind.apply(cl, []));
+  const instance = new (Function.prototype.bind.apply(cl, []))();
   Object.assign(instance, data);
 
   const keyTypes: keyType[] = Reflect.get(cl, "model:keyTypes");
@@ -96,7 +101,11 @@ export function createFrom<T>(cl: makerOf<T>, data: any, parent = null): T {
         instance[kt.key] = {};
         if (data[kt.key]) {
           Object.keys(data[kt.key]).forEach(dk => {
-            instance[kt.key][dk] = createFrom(kt.type, data[kt.key][dk], instance);
+            instance[kt.key][dk] = createFrom(
+              kt.type,
+              data[kt.key][dk],
+              instance,
+            );
           });
         }
       } else {
@@ -114,7 +123,8 @@ export enum FieldType {
   Field,
   Form,
   FormArray,
-};
+  FormProperty,
+}
 
 export interface Field {
   friendly: string;
@@ -127,8 +137,15 @@ export interface Field {
 
 export function field(friendly: string, ...validators: Validator[]) {
   return function(target, key) {
-    const fields: Field[] = Reflect.get(target.constructor, "model:fields") || [];
-    fields.push({ friendly, key, validators, fieldType: FieldType.Field, formCreator: null });
+    const fields: Field[] =
+      Reflect.get(target.constructor, "model:fields") || [];
+    fields.push({
+      friendly,
+      key,
+      validators,
+      fieldType: FieldType.Field,
+      formCreator: null,
+    });
     Reflect.set(target.constructor, "model:fields", fields);
   };
 }
@@ -142,7 +159,11 @@ export interface ValidationResult {
   message: string;
 }
 
-export function validateModel(model: any, fields: Field[], settings?: any): ValidationResult[] {
+export function validateModel(
+  model: any,
+  fields: Field[],
+  settings?: any,
+): ValidationResult[] {
   const result: ValidationResult[] = [];
 
   fields.forEach(f => {
@@ -169,22 +190,19 @@ export class Form {
   public validation: { [key: string]: string } = {};
   public isInvalid: boolean = false;
 
-	protected _fields: Field[] = [];
+  protected _fields: Field[] = [];
   constructor(data = null, fields: Field[] = null) {
-    if (data)
-      Object.assign(this, data);
+    if (data) Object.assign(this, data);
 
-		if (fields == null)
-			this._fields = getFields(this);
-		else
-			this._fields = fields;
+    if (fields == null) this._fields = getFields(this);
+    else this._fields = fields;
 
-		this._fields.forEach(f => this.validation[f.key] = "");
+    this._fields.forEach(f => (this.validation[f.key] = ""));
   }
 
   public getFieldName(field: string) {
-		const f = this._fields.find(ff => ff.key == field);
-		return f ? f.friendly : field;
+    const f = this._fields.find(ff => ff.key == field);
+    return f ? f.friendly : field;
   }
 
   // returns true if valid
@@ -196,12 +214,12 @@ export class Form {
     let shouldThrow = false;
 
     if (results.length > 0) {
-      results.forEach(v => this.validation[v.field] = v.message);
+      results.forEach(v => (this.validation[v.field] = v.message));
       shouldThrow = true;
     }
 
     const onValidator = (this as any).onValidate;
-    if (onValidator && typeof onValidator == 'function') {
+    if (onValidator && typeof onValidator == "function") {
       const adder = (messageOrField: string, message?: string) => {
         if (message != undefined) {
           this.validation[messageOrField] = message;
@@ -240,63 +258,89 @@ export class Form {
 }
 
 export function cloneOf<T>(modelType: makerOf<T>, instance: T): T {
-	const clonedJson = JSON.parse(JSON.stringify(instance));
-	return createFrom(modelType, clonedJson);
+  const clonedJson = JSON.parse(JSON.stringify(instance));
+  return createFrom(modelType, clonedJson);
 }
 
 // this may need to be hardened for minification... we'll see
 const getFieldNameRegEx = new RegExp("return (.*)[;}]");
 
 export function nameOf<T>(expr: (T) => any): string {
-	const res = getFieldNameRegEx.exec(expr.toString());
-	if (res == null) throw new Error("Could not get field name");
+  const res = getFieldNameRegEx.exec(expr.toString());
+  if (res == null) throw new Error("Could not get field name");
 
-	// this is limited to actual objects top level properties...
-	// not sure if we will have a need to go deep??
-	// i guess we will find out :)
-	return res[1].split(".")[1].trim();
+  // this is limited to actual objects top level properties...
+  // not sure if we will have a need to go deep??
+  // i guess we will find out :)
+  return res[1].split(".")[1].trim();
 }
 
 export class ModeledFormSetup<T> {
-	private _fields: Field[] = [];
+  private _fields: Field[] = [];
 
-	field(fs: (obj: T) => any, friendly: string, ...validators: Validator[]) {
-		this._fields.push({
-			friendly,
-			validators,
-			key: nameOf(fs),
+  field(fs: (obj: T) => any, friendly: string, ...validators: Validator[]) {
+    this._fields.push({
+      friendly,
+      validators,
+      key: nameOf(fs),
       fieldType: FieldType.Field,
       formCreator: null,
-		});
-	}
+    });
+  }
 
-  form<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>) {
-		this._fields.push({
-			friendly,
-			validators: [],
-			key: nameOf(fs),
+  form<AnotherT>(
+    fs: (obj: T) => any,
+    friendly: string,
+    formCreator: (thing: AnotherT) => FormForType<AnotherT>,
+  ) {
+    this._fields.push({
+      friendly,
+      validators: [],
+      key: nameOf(fs),
       fieldType: FieldType.Form,
       formCreator,
-		});
+    });
   }
 
-  formArray<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>) {
-		this._fields.push({
-			friendly,
-			validators: [],
-			key: nameOf(fs),
+  formArray<AnotherT>(
+    fs: (obj: T) => any,
+    friendly: string,
+    formCreator: (thing: AnotherT) => FormForType<AnotherT>,
+  ) {
+    this._fields.push({
+      friendly,
+      validators: [],
+      key: nameOf(fs),
       fieldType: FieldType.FormArray,
       formCreator,
-		});
+    });
   }
 
-	getFields(): Field[] {
-		return this._fields;
-	}
+  formProperty<AnotherT>(
+    fs: (obj: T) => any,
+    friendly: string,
+    formCreator: (thing: AnotherT) => FormForType<AnotherT>,
+  ) {
+    this._fields.push({
+      friendly,
+      validators: [],
+      key: nameOf(fs),
+      fieldType: FieldType.FormProperty,
+      formCreator,
+    });
+  }
+
+  getFields(): Field[] {
+    return this._fields;
+  }
 }
 
-
-const applyModel = <ModelT>(t: makerOf<ModelT>, applyTo: FormAsModel<ModelT>, newModel: ModelT, fields: Field[]) => {
+const applyModel = <ModelT>(
+  t: makerOf<ModelT>,
+  applyTo: FormAsModel<ModelT>,
+  newModel: ModelT,
+  fields: Field[],
+) => {
   const cloneOfThing = cloneOf(t, newModel);
 
   Object.assign(applyTo, cloneOfThing);
@@ -318,12 +362,31 @@ const applyModel = <ModelT>(t: makerOf<ModelT>, applyTo: FormAsModel<ModelT>, ne
       });
     }
   });
+
+  const formProperties = fields.filter(
+    f => f.fieldType == FieldType.FormProperty,
+  );
+  formProperties.forEach(formArray => {
+    applyTo[formArray.key] = {};
+
+    if (cloneOfThing[formArray.key] == null) return;
+
+    for (const key in cloneOfThing[formArray.key]) {
+      applyTo[formArray.key][key] = formArray.formCreator(
+        cloneOfThing[formArray.key][key],
+      );
+    }
+  });
 };
 
 export class FormAsModel<ModelT> extends Form {
-	constructor(fields: Field[], private _t: makerOf<ModelT>, private _orig: ModelT) {
-		super(undefined, fields);
-	}
+  constructor(
+    fields: Field[],
+    private _t: makerOf<ModelT>,
+    private _orig: ModelT,
+  ) {
+    super(undefined, fields);
+  }
 
   applyModel(newModel: ModelT) {
     this.clearValidation();
@@ -338,7 +401,9 @@ export class FormAsModel<ModelT> extends Form {
     if (fasm == null) return;
 
     this.validationMessages = fasm.validationMessages;
-    this._fields.forEach(f => this.validation[f.key] = fasm.validation[f.key]);
+    this._fields.forEach(
+      f => (this.validation[f.key] = fasm.validation[f.key]),
+    );
 
     const forms = this._fields.filter(f => f.fieldType == FieldType.Form);
     forms.forEach(f => {
@@ -347,7 +412,9 @@ export class FormAsModel<ModelT> extends Form {
       (this[f.key] as FormAsModel<any>).copyValidation(fasm[f.key]);
     });
 
-    const formArrays = this._fields.filter(f => f.fieldType == FieldType.FormArray);
+    const formArrays = this._fields.filter(
+      f => f.fieldType == FieldType.FormArray,
+    );
     formArrays.forEach(f => {
       this[f.key].forEach((d, idx) => {
         if (fasm[f.key] == null || fasm[f.key][idx] == null) return;
@@ -355,13 +422,26 @@ export class FormAsModel<ModelT> extends Form {
         (d as FormAsModel<any>).copyValidation(fasm[f.key][idx]);
       });
     });
+
+    const formProperties = this._fields.filter(
+      f => f.fieldType == FieldType.FormProperty,
+    );
+    formProperties.forEach(f => {
+      if (this[f.key] == null || fasm[f.key] == null) return;
+
+      for (const key in this[f.key]) {
+        if (fasm[f.key][key] == null) continue;
+
+        (this[f.key][key] as FormAsModel<any>).copyValidation(fasm[f.key][key]);
+      }
+    });
   }
 
-	updatedModel(): ModelT {
-		const data = cloneOf(this._t, this._orig);
-		this._fields.forEach(f => {
-			data[f.key] = this[f.key];
-		});
+  updatedModel(): ModelT {
+    const data = cloneOf(this._t, this._orig);
+    this._fields.forEach(f => {
+      data[f.key] = this[f.key];
+    });
 
     const forms = this._fields.filter(f => f.fieldType == FieldType.Form);
     forms.forEach(f => {
@@ -370,7 +450,9 @@ export class FormAsModel<ModelT> extends Form {
       data[f.key] = (this[f.key] as FormAsModel<any>).updatedModel();
     });
 
-    const formArrays = this._fields.filter(f => f.fieldType == FieldType.FormArray);
+    const formArrays = this._fields.filter(
+      f => f.fieldType == FieldType.FormArray,
+    );
     formArrays.forEach(f => {
       data[f.key] = [];
 
@@ -381,15 +463,30 @@ export class FormAsModel<ModelT> extends Form {
       });
     });
 
-		return data;
-	}
+    const formProperties = this._fields.filter(
+      f => f.fieldType == FieldType.FormProperty,
+    );
+    formProperties.forEach(f => {
+      data[f.key] = {};
+
+      for (const key in this[f.key]) {
+        if (this[f.key][key] == null) continue;
+
+        data[f.key][key] = (this[f.key][key] as FormAsModel<
+          any
+        >).updatedModel();
+      }
+    });
+
+    return data;
+  }
 
   validate(settings?: any) {
     let shouldThrow = false;
 
     try {
       super.validate(settings);
-    } catch(err) {
+    } catch (err) {
       shouldThrow = true;
     }
 
@@ -399,22 +496,39 @@ export class FormAsModel<ModelT> extends Form {
         if (this[f.key] == null) return;
 
         this[f.key].validate(settings);
-      } catch(err) {
+      } catch (err) {
         shouldThrow = true;
       }
     });
 
-    const formArrays = this._fields.filter(f => f.fieldType == FieldType.FormArray);
+    const formArrays = this._fields.filter(
+      f => f.fieldType == FieldType.FormArray,
+    );
     formArrays.forEach(f => {
       this[f.key].forEach(d => {
         try {
           if (d == null) return;
 
           (d as FormAsModel<any>).validate(settings);
-        } catch(err) {
+        } catch (err) {
           shouldThrow = true;
         }
       });
+    });
+
+    const formProperties = this._fields.filter(
+      f => f.fieldType == FieldType.FormProperty,
+    );
+    formProperties.forEach(f => {
+      for (const key in this[f.key]) {
+        try {
+          if (this[f.key][key] == null) continue;
+
+          (this[f.key][key] as FormAsModel<any>).validate(settings);
+        } catch (err) {
+          shouldThrow = true;
+        }
+      }
     });
 
     if (shouldThrow) {
@@ -426,8 +540,11 @@ export class FormAsModel<ModelT> extends Form {
 
 export type FormForType<ModelT> = FormAsModel<ModelT> & ModelT;
 
-export function formFor<ModelT>(t: makerOf<ModelT>, setup: (s: ModeledFormSetup<ModelT>) => void): (thing: ModelT) => FormForType<ModelT> {
-	return (thing: ModelT) => {
+export function formFor<ModelT>(
+  t: makerOf<ModelT>,
+  setup: (s: ModeledFormSetup<ModelT>) => void,
+): (thing: ModelT) => FormForType<ModelT> {
+  return (thing: ModelT) => {
     let oldForm = null;
     if (thing instanceof FormAsModel) {
       //throw new Error("Should not pass an instance of a form to a creator");
@@ -437,19 +554,18 @@ export function formFor<ModelT>(t: makerOf<ModelT>, setup: (s: ModeledFormSetup<
       thing = thing.updatedModel();
     }
 
-		const mfSetup = new ModeledFormSetup<ModelT>();
-		setup(mfSetup);
+    const mfSetup = new ModeledFormSetup<ModelT>();
+    setup(mfSetup);
 
     const fields = mfSetup.getFields();
-		const fasm = new FormAsModel<ModelT>(fields, t, thing);
+    const fasm = new FormAsModel<ModelT>(fields, t, thing);
 
     applyModel(t, fasm, thing, fields);
 
-    if (oldForm != null)
-      fasm.copyValidation(oldForm);
+    if (oldForm != null) fasm.copyValidation(oldForm);
 
-		return fasm as FormForType<ModelT>;
-	}
+    return fasm as FormForType<ModelT>;
+  };
 }
 
 import * as importedValidators from "./validators";

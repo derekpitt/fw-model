@@ -28,6 +28,7 @@ declare module 'fw-model' {
 	    Field = 0,
 	    Form = 1,
 	    FormArray = 2,
+	    FormProperty = 3,
 	}
 	export interface Field {
 	    friendly: string;
@@ -63,6 +64,7 @@ declare module 'fw-model' {
 	    field(fs: (obj: T) => any, friendly: string, ...validators: Validator[]): void;
 	    form<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
 	    formArray<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
+	    formProperty<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
 	    getFields(): Field[];
 	}
 	export class FormAsModel<ModelT> extends Form {

@@ -1,7 +1,15 @@
 import { assert } from "chai";
 
-import { formFor, FormForType, FormAsModel, fromClass, fromClassArray, Validators, createFrom } from "../src/index";
-
+import {
+  formFor,
+  FormForType,
+  FormAsModel,
+  fromClass,
+  fromClassArray,
+  Validators,
+  createFrom,
+  fromPropertyClass,
+} from "../src/index";
 
 class ModelA {
   field1: string;
@@ -16,15 +24,21 @@ class ModelC {
   @fromClass b: ModelB;
 }
 
+class ModelF {
+  pow: string;
+}
+
 class ModelD {
   hey: string;
   @fromClassArray(ModelC) cs: ModelC[];
+  @fromPropertyClass(ModelF) f: { [key: string]: ModelF };
 }
 
 class ModelE {
   hey: string;
   @fromClassArray(ModelC) cs: ModelC[];
   @fromClass b: ModelB;
+  @fromPropertyClass(ModelF) f: { [key: string]: ModelF };
 }
 
 const formForModelA = formFor(ModelA, s => {
@@ -40,15 +54,23 @@ const formForModelC = formFor(ModelC, s => {
   s.form(a => a.b, "Beee", formForModelB);
 });
 
+const formForModelF = formFor(ModelF, s => {
+  s.field(a => a.pow, "Pow");
+});
+
 const formForModelD = formFor(ModelD, s => {
   s.field(a => a.hey, "Hey Now");
   s.formArray(a => a.cs, "Ceeees", formForModelC);
+  s.formProperty(a => a.f, "Pow", formForModelF);
 });
-
 
 // validation creators
 const formForModelBWithValidation = formFor(ModelB, s => {
   s.field(a => a.field2, "Field 2", Validators.required);
+});
+
+const formForModelFWithValidation = formFor(ModelF, s => {
+  s.field(a => a.pow, "Pow", Validators.required);
 });
 
 const formForModelCWithValidation = formFor(ModelC, s => {
@@ -60,6 +82,7 @@ const formForModelEWithValidation = formFor(ModelE, s => {
   s.field(a => a.hey, "ok", Validators.required);
   s.form(a => a.b, "Beee", formForModelBWithValidation);
   s.formArray(a => a.cs, "Ceeees", formForModelCWithValidation);
+  s.formProperty(a => a.f, "Pow", formForModelFWithValidation);
 });
 
 describe("form for", () => {
@@ -146,14 +169,20 @@ describe("form for", () => {
           b: {
             field2: "f1",
           },
-        }
+        },
       ],
+      f: {
+        prop1: { pow: "pow1" },
+        prop2: { pow: "pow2" },
+      },
     };
 
     const instance = formForModelD(origData);
 
     instance.cs[0].hey = "modified";
     instance.cs[0].b.field2 = "modified";
+
+    instance.f["prop1"].pow = "modified";
 
     instance.cs.push(formForModelC(null));
 
@@ -166,6 +195,10 @@ describe("form for", () => {
     assert(updated.cs.length == 2);
     assert(updated.cs[0].hey == "modified");
     assert(updated.cs[0].b.field2 == "modified");
+
+    assert(origData.f["prop1"].pow == "pow1");
+
+    assert(updated.f["prop1"].pow == "modified");
   });
 
   it("can validate everything", () => {
@@ -173,18 +206,29 @@ describe("form for", () => {
 
     instance.b = formForModelBWithValidation(null);
     instance.cs.push(formForModelCWithValidation(null));
+    instance.f["prop1"] = formForModelFWithValidation(null);
 
     try {
       instance.validate();
       assert.fail(); // should not ever get here..
-    } catch(err) { }
+    } catch (err) {}
 
     assert(instance.validation["hey"] != "", "hey is valid");
-    assert((instance.b as FormForType<any>).validation["field2"] != "", "b.field2 is valid");
+    assert(
+      (instance.b as FormForType<any>).validation["field2"] != "",
+      "b.field2 is valid",
+    );
+    assert(
+      (instance.f["prop1"] as FormForType<any>).validation["pow"] != "",
+      "f.prop1.pow is valid",
+    );
 
     const cs = instance.cs as FormForType<any>[];
     assert(cs[0].validation["hey"] != "", "cs[0].hey is valid");
-    assert((cs[0].b as FormForType<any>).validation["field2"] != "", "cs[0].b.field2 is valid");
+    assert(
+      (cs[0].b as FormForType<any>).validation["field2"] != "",
+      "cs[0].b.field2 is valid",
+    );
   });
 
   it("can copy over validation when creating from an invalid form", () => {
@@ -192,19 +236,30 @@ describe("form for", () => {
 
     instance.b = formForModelBWithValidation(null);
     instance.cs.push(formForModelCWithValidation(null));
+    instance.f["prop1"] = formForModelFWithValidation(null);
 
     try {
       instance.validate();
-    } catch (err) { }
+    } catch (err) {}
 
     const newInstace = formForModelEWithValidation(instance);
 
     assert(newInstace.validation["hey"] != "", "hey is valid");
-    assert((newInstace.b as FormForType<any>).validation["field2"] != "", "b.field2 is valid");
+    assert(
+      (newInstace.b as FormForType<any>).validation["field2"] != "",
+      "b.field2 is valid",
+    );
+    assert(
+      (newInstace.f["prop1"] as FormForType<any>).validation["pow"] != "",
+      "f.prop1.pow is valid",
+    );
 
     const cs = newInstace.cs as FormForType<any>[];
     assert(cs[0].validation["hey"] != "", "cs[0].hey is valid");
-    assert((cs[0].b as FormForType<any>).validation["field2"] != "", "cs[0].b.field2 is valid");
+    assert(
+      (cs[0].b as FormForType<any>).validation["field2"] != "",
+      "cs[0].b.field2 is valid",
+    );
   });
 
   it("can validate with nulls", () => {
@@ -213,8 +268,9 @@ describe("form for", () => {
     instance.hey = "ok";
 
     // we shouldn't have to validate these
-    instance.b = null
+    instance.b = null;
     instance.cs.push(null);
+    instance.f = null;
 
     instance.validate();
   });
@@ -222,21 +278,23 @@ describe("form for", () => {
   it("can apply a new model on top of itself", () => {
     const old = createFrom(ModelE, {
       hey: "old",
-      cs: [
-        { hey: "old", b: { field2: "old" } },
-      ],
+      cs: [{ hey: "old", b: { field2: "old" } }],
       b: {
-       field2: "old",
+        field2: "old",
+      },
+      f: {
+        prop1: { pow: "old" },
       },
     });
 
     const newModel = createFrom(ModelE, {
       hey: "new",
-      cs: [
-        { hey: "new", b: { field2: "new" } },
-      ],
+      cs: [{ hey: "new", b: { field2: "new" } }],
       b: {
-       field2: "new",
+        field2: "new",
+      },
+      f: {
+        prop1: { pow: "new" },
       },
     });
 
@@ -244,8 +302,22 @@ describe("form for", () => {
     instance.applyModel(newModel);
 
     assert(instance.hey == "new");
-    assert(instance.b instanceof FormAsModel, "instance.b not an instance of a form");
-    assert(instance.cs[0] instanceof FormAsModel, "instance.cs[0] not an instance of a form");
+    assert(
+      instance.b instanceof FormAsModel,
+      "instance.b not an instance of a form",
+    );
+    assert(instance.b.field2 == "new");
+    assert(
+      instance.f["prop1"] instanceof FormAsModel,
+      "instance.f not an instance of a form",
+    );
+    assert(instance.f["prop1"].pow == "new");
+    assert(
+      instance.cs[0] instanceof FormAsModel,
+      "instance.cs[0] not an instance of a form",
+    );
+    assert(instance.cs[0].hey == "new");
+    assert(instance.cs[0].b.field2 == "new");
   });
 
   /*
@@ -272,4 +344,3 @@ describe("form for", () => {
   });
   */
 });
-

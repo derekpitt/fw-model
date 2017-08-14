@@ -135,8 +135,8 @@ exports.FieldType = FieldType;
     FieldType[FieldType["Field"] = 0] = "Field";
     FieldType[FieldType["Form"] = 1] = "Form";
     FieldType[FieldType["FormArray"] = 2] = "FormArray";
+    FieldType[FieldType["FormProperty"] = 3] = "FormProperty";
 })(FieldType || (exports.FieldType = FieldType = {}));
-;
 
 function field(friendly) {
     for (var _len = arguments.length, validators = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -145,7 +145,13 @@ function field(friendly) {
 
     return function (target, key) {
         var fields = Reflect.get(target.constructor, "model:fields") || [];
-        fields.push({ friendly: friendly, key: key, validators: validators, fieldType: FieldType.Field, formCreator: null });
+        fields.push({
+            friendly: friendly,
+            key: key,
+            validators: validators,
+            fieldType: FieldType.Field,
+            formCreator: null
+        });
         Reflect.set(target.constructor, "model:fields", fields);
     };
 }
@@ -217,7 +223,7 @@ var Form = (function () {
                 shouldThrow = true;
             }
             var onValidator = this.onValidate;
-            if (onValidator && typeof onValidator == 'function') {
+            if (onValidator && typeof onValidator == "function") {
                 var adder = function adder(messageOrField, message) {
                     if (message != undefined) {
                         _this2.validation[messageOrField] = message;
@@ -321,6 +327,17 @@ var ModeledFormSetup = (function () {
             });
         }
     }, {
+        key: "formProperty",
+        value: function formProperty(fs, friendly, formCreator) {
+            this._fields.push({
+                friendly: friendly,
+                validators: [],
+                key: nameOf(fs),
+                fieldType: FieldType.FormProperty,
+                formCreator: formCreator
+            });
+        }
+    }, {
         key: "getFields",
         value: function getFields() {
             return this._fields;
@@ -352,6 +369,16 @@ var _applyModel = function _applyModel(t, applyTo, newModel, fields) {
             cloneOfThing[formArray.key].forEach(function (d) {
                 applyTo[formArray.key].push(formArray.formCreator(d));
             });
+        }
+    });
+    var formProperties = fields.filter(function (f) {
+        return f.fieldType == FieldType.FormProperty;
+    });
+    formProperties.forEach(function (formArray) {
+        applyTo[formArray.key] = {};
+        if (cloneOfThing[formArray.key] == null) return;
+        for (var key in cloneOfThing[formArray.key]) {
+            applyTo[formArray.key][key] = formArray.formCreator(cloneOfThing[formArray.key][key]);
         }
     });
 };
@@ -403,6 +430,16 @@ var FormAsModel = (function (_Form) {
                     d.copyValidation(fasm[f.key][idx]);
                 });
             });
+            var formProperties = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.FormProperty;
+            });
+            formProperties.forEach(function (f) {
+                if (_this4[f.key] == null || fasm[f.key] == null) return;
+                for (var key in _this4[f.key]) {
+                    if (fasm[f.key][key] == null) continue;
+                    _this4[f.key][key].copyValidation(fasm[f.key][key]);
+                }
+            });
         }
     }, {
         key: "updatedModel",
@@ -429,6 +466,16 @@ var FormAsModel = (function (_Form) {
                     if (d == null) return;
                     data[f.key].push(d.updatedModel());
                 });
+            });
+            var formProperties = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.FormProperty;
+            });
+            formProperties.forEach(function (f) {
+                data[f.key] = {};
+                for (var key in _this5[f.key]) {
+                    if (_this5[f.key][key] == null) continue;
+                    data[f.key][key] = _this5[f.key][key].updatedModel();
+                }
             });
             return data;
         }
@@ -466,6 +513,19 @@ var FormAsModel = (function (_Form) {
                         shouldThrow = true;
                     }
                 });
+            });
+            var formProperties = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.FormProperty;
+            });
+            formProperties.forEach(function (f) {
+                for (var key in _this6[f.key]) {
+                    try {
+                        if (_this6[f.key][key] == null) continue;
+                        _this6[f.key][key].validate(settings);
+                    } catch (err) {
+                        shouldThrow = true;
+                    }
+                }
             });
             if (shouldThrow) {
                 this.isInvalid = true;

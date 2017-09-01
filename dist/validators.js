@@ -7,6 +7,7 @@ exports.required = required;
 exports.isEmail = isEmail;
 exports.isNumber = isNumber;
 exports.isInteger = isInteger;
+exports.inRange = inRange;
 exports.isUrl = isUrl;
 exports.isMinLength = isMinLength;
 exports.isChecked = isChecked;
@@ -38,6 +39,23 @@ function isInteger(input) {
     if (input == null || input.length == 0) return null;
     var isInt = parseFloat(input) - parseInt(input) === 0;
     return isInt ? null : "Not a valid integer";
+}
+
+function inRange(min, max) {
+    return function (input) {
+        if (input == null || input.length == 0) return null;
+        var num = parseFloat(input);
+        if (isNumber(input) != null) return null;
+        if (min != null && max != null) {
+            return num >= min && num <= max ? null : "Must be between " + min + " and " + max;
+        } else if (min != null) {
+            return num >= min ? null : "Must be at least " + min;
+        } else if (max != null) {
+            return num <= max ? null : "Must be at most " + max;
+        } else {
+            return null;
+        }
+    };
 }
 
 function isUrl() {

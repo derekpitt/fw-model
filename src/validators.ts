@@ -24,6 +24,25 @@ export function isInteger(input: string) {
   return isInt ? null : "Not a valid integer";
 }
 
+export function inRange(min: number, max: number) {
+  return function(input: string) {
+    if (input == null || input.length == 0) return null;
+
+    const num = parseFloat(input);
+    if (isNumber(input) != null) return null;
+    
+    if (min != null && max != null) {
+      return (num >= min && num <= max) ? null : `Must be between ${min} and ${max}`;
+    } else if (min != null) {
+      return num >= min ? null : `Must be at least ${min}`
+    } else if (max != null) {
+      return num <= max ? null : `Must be at most ${max}`
+    } else {
+      return null;
+    }
+  }
+}
+
 export function isUrl(enforceSSL: boolean = false) {
   return function(input: string) {
     if (input == null || input.length == 0) return null;

@@ -11,8 +11,9 @@ exports.inRange = inRange;
 exports.isUrl = isUrl;
 exports.isMinLength = isMinLength;
 exports.isChecked = isChecked;
+exports.isLength = isLength;
 
-var _templateObject = _taggedTemplateLiteral(["^(https", "://)(www>)?[-a-zA-Z0-9@:%._+~#=]{2,256}>[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$"], ["^(https", ":\\/\\/)(www>)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}>[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$"]);
+var _templateObject = _taggedTemplateLiteral(["^((https", ")://)", "(www.)?[a-z0-9]+(.[a-z]+)+(/[-a-zA-Z0-9@:%_+.~#?&//=]+/?)*$"], ["^((https", "):\\/\\/)", "(www.)?[a-z0-9]+(\\.[a-z]+)+(\\/[-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]+\\/?)*$"]);
 
 function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
@@ -63,8 +64,8 @@ function isUrl() {
 
     return function (input) {
         if (input == null || input.length == 0) return null;
-        var urlRegEx = new RegExp(String.raw(_templateObject, enforceSSL ? '' : '?'));
-        return urlRegEx.test(input) ? null : "Not a valid " + (enforceSSL ? 'SSL ' : '') + " URL";
+        var urlRegEx = new RegExp(String.raw(_templateObject, enforceSSL ? '' : '?', enforceSSL ? '' : '?'));
+        return urlRegEx.test(input) ? null : "Not a valid " + (enforceSSL ? 'SSL ' : '') + "URL";
     };
 }
 
@@ -78,4 +79,13 @@ function isMinLength(num) {
 function isChecked(input) {
     if (input == null) return null;
     return input === true ? null : "Required";
+}
+
+function isLength(num) {
+    return function (input) {
+        if (input.length < num) {
+            return "Must be at least ${num} characters";
+        }
+        return null;
+    };
 }

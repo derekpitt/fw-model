@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { Form, field } from "../src/index";
-import { inRange } from "../src/validators";
+import { inRange, isUrl } from "../src/validators";
 
 class CustomFormWithValidate extends Form {
   constructor(private shouldAddToValidation = true) { super(); }
@@ -67,6 +67,30 @@ describe("validation", () => {
       assert.isNull(inRange(0,100)("50"));
       assert.isNotNull(inRange(0,100)("-1"));
       assert.isNotNull(inRange(0, 100)("101"));
+    });
+  });
+
+  describe("isUrl", () => {
+    it("should validate a simple URL", () => {
+      assert.isNull(isUrl()('example.com'));
+    });
+    it("should validate a URL without protocol", () => {
+      assert.isNull(isUrl()('www.example.com'));
+    });
+    it("should validate a URL with http protocol", () => {
+      assert.isNull(isUrl()('http://www.example.com'));
+    });
+    it("shouldn't validate a URL with broken protocol", () => {
+      assert.isNotNull(isUrl()('ht://www.example.com'));
+    });
+    it("should validate a SSL URL", () => {
+      assert.isNull(isUrl()('https://www.example.com'));
+    });
+    it("should enforce a SSL URL", () => {
+      assert.isNotNull(isUrl(true)('http://www.example.com'));
+    });
+    it("should validate a URL with path, fragment & query", () => {
+      assert.isNull(isUrl()('http://www.example.com/?foo=bar#quz'));
     });
   });
 });

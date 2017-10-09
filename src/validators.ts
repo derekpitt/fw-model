@@ -1,3 +1,5 @@
+export type Validator = (input: any, model?: any, settings?: any) => string;
+
 export function required(input: string) {
   if (input == null || input.length == 0) return "Required";
   const hasValue = input.toString().replace(/^\s+/, "").replace(/\s+$/, "").length > 0;
@@ -22,10 +24,43 @@ export function isInteger(input: string) {
   return isInt ? null : "Not a valid integer";
 }
 
-const urlRegEx = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$/;
-export function isUrl(input: string) {
-  if (input == null || input.length == 0) return null;
-  return urlRegEx.test(input) ? null : "Not a valid URL";
+export function inRange(min: number, max: number) {
+  return function(input: string) {
+    if (input == null || input.length == 0) return null;
+
+    const num = parseFloat(input);
+    if (isNumber(input) != null) return null;
+    
+    if (min != null && max != null) {
+      return (num >= min && num <= max) ? null : `Must be between ${min} and ${max}`;
+    } else if (min != null) {
+      return num >= min ? null : `Must be at least ${min}`
+    } else if (max != null) {
+      return num <= max ? null : `Must be at most ${max}`
+    } else {
+      return null;
+    }
+  }
+}
+
+export function isUrl(enforceSSL: boolean = false) {
+  return function(input: string) {
+    if (input == null || input.length == 0) return null;
+    let urlRegEx = new RegExp(String.raw`^(https${enforceSSL ? '' : '?'}:\/\/)(www>)?[-a-zA-Z0-9@:%._\+~#=]{2,256}>[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$`);
+    return urlRegEx.test(input) ? null : `Not a valid ${enforceSSL ? 'SSL ' : ''} URL`;
+  }
+}
+
+export function isMinLength(num: number) {
+  return function(input: string) {
+    if (input == null || input.length == 0) return null;
+    return input.length >= num ? null : "Must be at least " + num + " characters";
+  }
+}
+
+export function isChecked(input: any) {
+  if (input == null) return null;
+  return input === true ? null : "Required";
 }
 
 export function isLength(num: number) {

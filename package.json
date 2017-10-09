@@ -1,10 +1,11 @@
 {
   "name": "fw-model",
-  "version": "0.1.8",
+  "version": "0.1.19",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "./node_modules/.bin/gulp build"
+    "build": "./node_modules/.bin/gulp build",
+    "test": "./node_modules/.bin/gulp test"
   },
   "author": "",
   "license": "ISC",

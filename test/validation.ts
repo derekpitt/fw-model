@@ -1,6 +1,7 @@
 import { assert } from "chai";
 
 import { Form, field } from "../src/index";
+import { inRange } from "../src/validators";
 
 class CustomFormWithValidate extends Form {
   constructor(private shouldAddToValidation = true) { super(); }
@@ -47,6 +48,25 @@ describe("validation", () => {
       }
 
       assert.isFalse(didThrow, "should not throw after calling validate");
+    });
+  });
+
+  describe("inRange", () => {
+    it("should not validate bad input", () => {
+      assert.isNull(inRange(0, 100)("zabc"));
+    });
+    it("should validate min", () => {
+      assert.isNull(inRange(0, null)("1"));
+      assert.isNotNull(inRange(0, null)("-1"));
+    });
+    it("should validate max", () => {
+      assert.isNull(inRange(null, 100)("50"));
+      assert.isNotNull(inRange(null, 100)("101"));
+    });
+    it("should validate min and max", () => {
+      assert.isNull(inRange(0,100)("50"));
+      assert.isNotNull(inRange(0,100)("-1"));
+      assert.isNotNull(inRange(0, 100)("101"));
     });
   });
 });

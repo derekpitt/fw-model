@@ -7,7 +7,14 @@ exports.required = required;
 exports.isEmail = isEmail;
 exports.isNumber = isNumber;
 exports.isInteger = isInteger;
+exports.inRange = inRange;
 exports.isUrl = isUrl;
+exports.isMinLength = isMinLength;
+exports.isChecked = isChecked;
+
+var _templateObject = _taggedTemplateLiteral(["^(https", "://)(www>)?[-a-zA-Z0-9@:%._+~#=]{2,256}>[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$"], ["^(https", ":\\/\\/)(www>)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}>[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$"]);
+
+function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 function required(input) {
     if (input == null || input.length == 0) return "Required";
@@ -34,9 +41,41 @@ function isInteger(input) {
     return isInt ? null : "Not a valid integer";
 }
 
-var urlRegEx = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$/;
+function inRange(min, max) {
+    return function (input) {
+        if (input == null || input.length == 0) return null;
+        var num = parseFloat(input);
+        if (isNumber(input) != null) return null;
+        if (min != null && max != null) {
+            return num >= min && num <= max ? null : "Must be between " + min + " and " + max;
+        } else if (min != null) {
+            return num >= min ? null : "Must be at least " + min;
+        } else if (max != null) {
+            return num <= max ? null : "Must be at most " + max;
+        } else {
+            return null;
+        }
+    };
+}
 
-function isUrl(input) {
-    if (input == null || input.length == 0) return null;
-    return urlRegEx.test(input) ? null : "Not a valid URL";
+function isUrl() {
+    var enforceSSL = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+
+    return function (input) {
+        if (input == null || input.length == 0) return null;
+        var urlRegEx = new RegExp(String.raw(_templateObject, enforceSSL ? '' : '?'));
+        return urlRegEx.test(input) ? null : "Not a valid " + (enforceSSL ? 'SSL ' : '') + " URL";
+    };
+}
+
+function isMinLength(num) {
+    return function (input) {
+        if (input == null || input.length == 0) return null;
+        return input.length >= num ? null : "Must be at least " + num + " characters";
+    };
+}
+
+function isChecked(input) {
+    if (input == null) return null;
+    return input === true ? null : "Required";
 }

@@ -12,11 +12,14 @@ exports.fromClass = fromClass;
 exports.fromClassArray = fromClassArray;
 exports.fromPropertyClass = fromPropertyClass;
 exports.fromCustom = fromCustom;
+exports.createFromProperties = createFromProperties;
 exports.createFromArray = createFromArray;
 exports.createFrom = createFrom;
 exports.field = field;
 exports.getFields = getFields;
 exports.validateModel = validateModel;
+exports.cloneOf = cloneOf;
+exports.nameOf = nameOf;
 exports.formFor = formFor;
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj["default"] = obj; return newObj; } }
@@ -80,6 +83,14 @@ function fromCustom(customFunction) {
     };
 }
 
+function createFromProperties(cl, data) {
+    var instance = {};
+    Object.keys(data).forEach(function (dk) {
+        return instance[dk] = createFrom(cl, data[dk]);
+    });
+    return instance;
+}
+
 function createFromArray(cl, data) {
     return data.map(function (d) {
         return createFrom(cl, d);
@@ -124,8 +135,8 @@ exports.FieldType = FieldType;
     FieldType[FieldType["Field"] = 0] = "Field";
     FieldType[FieldType["Form"] = 1] = "Form";
     FieldType[FieldType["FormArray"] = 2] = "FormArray";
+    FieldType[FieldType["FormProperty"] = 3] = "FormProperty";
 })(FieldType || (exports.FieldType = FieldType = {}));
-;
 
 function field(friendly) {
     for (var _len = arguments.length, validators = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -134,7 +145,13 @@ function field(friendly) {
 
     return function (target, key) {
         var fields = Reflect.get(target.constructor, "model:fields") || [];
-        fields.push({ friendly: friendly, key: key, validators: validators, fieldType: FieldType.Field, formCreator: null });
+        fields.push({
+            friendly: friendly,
+            key: key,
+            validators: validators,
+            fieldType: FieldType.Field,
+            formCreator: null
+        });
         Reflect.set(target.constructor, "model:fields", fields);
     };
 }
@@ -143,13 +160,13 @@ function getFields(target) {
     return Reflect.get(target.constructor, "model:fields") || [];
 }
 
-function validateModel(model, fields) {
+function validateModel(model, fields, settings) {
     var result = [];
     fields.forEach(function (f) {
         var value = model[f.key];
         if (f.validators) {
             for (var i = 0; i < f.validators.length; i++) {
-                var message = f.validators[i].apply(null, [value, model]);
+                var message = f.validators[i].apply(null, [value, model, settings]);
                 if (message != null) {
                     result.push({ message: message, field: f.key });
                     // only take the first one
@@ -193,11 +210,11 @@ var Form = (function () {
         // returns true if valid
     }, {
         key: "validate",
-        value: function validate() {
+        value: function validate(settings) {
             var _this2 = this;
 
             this.clearValidation();
-            var results = validateModel(this, this._fields);
+            var results = validateModel(this, this._fields, settings);
             var shouldThrow = false;
             if (results.length > 0) {
                 results.forEach(function (v) {
@@ -206,7 +223,7 @@ var Form = (function () {
                 shouldThrow = true;
             }
             var onValidator = this.onValidate;
-            if (onValidator && typeof onValidator == 'function') {
+            if (onValidator && typeof onValidator == "function") {
                 var adder = function adder(messageOrField, message) {
                     if (message != undefined) {
                         _this2.validation[messageOrField] = message;
@@ -252,9 +269,11 @@ function cloneOf(modelType, instance) {
     var clonedJson = JSON.parse(JSON.stringify(instance));
     return createFrom(modelType, clonedJson);
 }
+
 // this may need to be hardened for minification... we'll see
 var getFieldNameRegEx = new RegExp("return (.*)[;}]");
-function getFieldName(expr) {
+
+function nameOf(expr) {
     var res = getFieldNameRegEx.exec(expr.toString());
     if (res == null) throw new Error("Could not get field name");
     // this is limited to actual objects top level properties...
@@ -280,7 +299,7 @@ var ModeledFormSetup = (function () {
             this._fields.push({
                 friendly: friendly,
                 validators: validators,
-                key: getFieldName(fs),
+                key: nameOf(fs),
                 fieldType: FieldType.Field,
                 formCreator: null
             });
@@ -291,7 +310,7 @@ var ModeledFormSetup = (function () {
             this._fields.push({
                 friendly: friendly,
                 validators: [],
-                key: getFieldName(fs),
+                key: nameOf(fs),
                 fieldType: FieldType.Form,
                 formCreator: formCreator
             });
@@ -302,8 +321,19 @@ var ModeledFormSetup = (function () {
             this._fields.push({
                 friendly: friendly,
                 validators: [],
-                key: getFieldName(fs),
+                key: nameOf(fs),
                 fieldType: FieldType.FormArray,
+                formCreator: formCreator
+            });
+        }
+    }, {
+        key: "formProperty",
+        value: function formProperty(fs, friendly, formCreator) {
+            this._fields.push({
+                friendly: friendly,
+                validators: [],
+                key: nameOf(fs),
+                fieldType: FieldType.FormProperty,
                 formCreator: formCreator
             });
         }
@@ -319,6 +349,40 @@ var ModeledFormSetup = (function () {
 
 exports.ModeledFormSetup = ModeledFormSetup;
 
+var _applyModel = function _applyModel(t, applyTo, newModel, fields) {
+    var cloneOfThing = cloneOf(t, newModel);
+    Object.assign(applyTo, cloneOfThing);
+    // do the forms
+    var forms = fields.filter(function (f) {
+        return f.fieldType == FieldType.Form;
+    });
+    forms.forEach(function (form) {
+        applyTo[form.key] = form.formCreator(cloneOfThing[form.key] || null);
+    });
+    // do the forms arrays
+    var formArrays = fields.filter(function (f) {
+        return f.fieldType == FieldType.FormArray;
+    });
+    formArrays.forEach(function (formArray) {
+        applyTo[formArray.key] = [];
+        if (Array.isArray(cloneOfThing[formArray.key])) {
+            cloneOfThing[formArray.key].forEach(function (d) {
+                applyTo[formArray.key].push(formArray.formCreator(d));
+            });
+        }
+    });
+    var formProperties = fields.filter(function (f) {
+        return f.fieldType == FieldType.FormProperty;
+    });
+    formProperties.forEach(function (formArray) {
+        applyTo[formArray.key] = {};
+        if (cloneOfThing[formArray.key] == null) return;
+        for (var key in cloneOfThing[formArray.key]) {
+            applyTo[formArray.key][key] = formArray.formCreator(cloneOfThing[formArray.key][key]);
+        }
+    });
+};
+
 var FormAsModel = (function (_Form) {
     _inherits(FormAsModel, _Form);
 
@@ -331,41 +395,98 @@ var FormAsModel = (function (_Form) {
     }
 
     _createClass(FormAsModel, [{
-        key: "updatedModel",
-        value: function updatedModel() {
+        key: "applyModel",
+        value: function applyModel(newModel) {
+            this.clearValidation();
+            _applyModel(this._t, this, newModel, this._fields);
+        }
+
+        // formArray fields could be weird in this if the models arew out of sync..
+        // if you do ever call this yourself, make sure
+        // that items haven't been moved around
+    }, {
+        key: "copyValidation",
+        value: function copyValidation(fasm) {
             var _this4 = this;
 
-            var data = cloneOf(this._t, this._orig);
+            if (fasm == null) return;
+            this.validationMessages = fasm.validationMessages;
             this._fields.forEach(function (f) {
-                data[f.key] = _this4[f.key];
+                return _this4.validation[f.key] = fasm.validation[f.key];
             });
             var forms = this._fields.filter(function (f) {
                 return f.fieldType == FieldType.Form;
             });
             forms.forEach(function (f) {
-                if (_this4[f.key] == null) return;
-                data[f.key] = _this4[f.key].updatedModel();
+                if (_this4[f.key] == null || fasm[f.key] == null) return;
+                _this4[f.key].copyValidation(fasm[f.key]);
+            });
+            var formArrays = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.FormArray;
+            });
+            formArrays.forEach(function (f) {
+                _this4[f.key].forEach(function (d, idx) {
+                    if (fasm[f.key] == null || fasm[f.key][idx] == null) return;
+                    d.copyValidation(fasm[f.key][idx]);
+                });
+            });
+            var formProperties = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.FormProperty;
+            });
+            formProperties.forEach(function (f) {
+                if (_this4[f.key] == null || fasm[f.key] == null) return;
+                for (var key in _this4[f.key]) {
+                    if (fasm[f.key][key] == null) continue;
+                    _this4[f.key][key].copyValidation(fasm[f.key][key]);
+                }
+            });
+        }
+    }, {
+        key: "updatedModel",
+        value: function updatedModel() {
+            var _this5 = this;
+
+            var data = cloneOf(this._t, this._orig);
+            this._fields.forEach(function (f) {
+                data[f.key] = _this5[f.key];
+            });
+            var forms = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.Form;
+            });
+            forms.forEach(function (f) {
+                if (_this5[f.key] == null) return;
+                data[f.key] = _this5[f.key].updatedModel();
             });
             var formArrays = this._fields.filter(function (f) {
                 return f.fieldType == FieldType.FormArray;
             });
             formArrays.forEach(function (f) {
                 data[f.key] = [];
-                _this4[f.key].forEach(function (d) {
+                _this5[f.key].forEach(function (d) {
                     if (d == null) return;
                     data[f.key].push(d.updatedModel());
                 });
+            });
+            var formProperties = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.FormProperty;
+            });
+            formProperties.forEach(function (f) {
+                data[f.key] = {};
+                for (var key in _this5[f.key]) {
+                    if (_this5[f.key][key] == null) continue;
+                    data[f.key][key] = _this5[f.key][key].updatedModel();
+                }
             });
             return data;
         }
     }, {
         key: "validate",
-        value: function validate() {
-            var _this5 = this;
+        value: function validate(settings) {
+            var _this6 = this;
 
             var shouldThrow = false;
             try {
-                _get(Object.getPrototypeOf(FormAsModel.prototype), "validate", this).call(this);
+                _get(Object.getPrototypeOf(FormAsModel.prototype), "validate", this).call(this, settings);
             } catch (err) {
                 shouldThrow = true;
             }
@@ -374,8 +495,8 @@ var FormAsModel = (function (_Form) {
             });
             forms.forEach(function (f) {
                 try {
-                    if (_this5[f.key] == null) return;
-                    _this5[f.key].validate();
+                    if (_this6[f.key] == null) return;
+                    _this6[f.key].validate(settings);
                 } catch (err) {
                     shouldThrow = true;
                 }
@@ -384,14 +505,27 @@ var FormAsModel = (function (_Form) {
                 return f.fieldType == FieldType.FormArray;
             });
             formArrays.forEach(function (f) {
-                _this5[f.key].forEach(function (d) {
+                _this6[f.key].forEach(function (d) {
                     try {
                         if (d == null) return;
-                        d.validate();
+                        d.validate(settings);
                     } catch (err) {
                         shouldThrow = true;
                     }
                 });
+            });
+            var formProperties = this._fields.filter(function (f) {
+                return f.fieldType == FieldType.FormProperty;
+            });
+            formProperties.forEach(function (f) {
+                for (var key in _this6[f.key]) {
+                    try {
+                        if (_this6[f.key][key] == null) continue;
+                        _this6[f.key][key].validate(settings);
+                    } catch (err) {
+                        shouldThrow = true;
+                    }
+                }
             });
             if (shouldThrow) {
                 this.isInvalid = true;
@@ -407,31 +541,19 @@ exports.FormAsModel = FormAsModel;
 
 function formFor(t, setup) {
     return function (thing) {
+        var oldForm = null;
+        if (thing instanceof FormAsModel) {
+            //throw new Error("Should not pass an instance of a form to a creator");
+            // updated model, and also
+            oldForm = thing;
+            thing = thing.updatedModel();
+        }
         var mfSetup = new ModeledFormSetup();
         setup(mfSetup);
         var fields = mfSetup.getFields();
         var fasm = new FormAsModel(fields, t, thing);
-        var cloneOfThing = cloneOf(t, thing);
-        Object.assign(fasm, cloneOfThing);
-        // do the forms
-        var forms = fields.filter(function (f) {
-            return f.fieldType == FieldType.Form;
-        });
-        forms.forEach(function (form) {
-            fasm[form.key] = form.formCreator(cloneOfThing[form.key] || null);
-        });
-        // do the forms arrays
-        var formArrays = fields.filter(function (f) {
-            return f.fieldType == FieldType.FormArray;
-        });
-        formArrays.forEach(function (formArray) {
-            fasm[formArray.key] = [];
-            if (Array.isArray(cloneOfThing[formArray.key])) {
-                cloneOfThing[formArray.key].forEach(function (d) {
-                    fasm[formArray.key].push(formArray.formCreator(d));
-                });
-            }
-        });
+        _applyModel(t, fasm, thing, fields);
+        if (oldForm != null) fasm.copyValidation(oldForm);
         return fasm;
     };
 }

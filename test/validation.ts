@@ -89,6 +89,12 @@ describe("validation", () => {
     it("should enforce a SSL URL", () => {
       assert.isNotNull(isUrl(true)('http://www.example.com'));
     });
+    it("should validate a URL with an ending slash", () => {
+      assert.isNull(isUrl()('http://www.example.com/'));
+    });
+    it("should validate a SSL URL with an ending slash", () => {
+      assert.isNull(isUrl(true)('https://www.example.com/'));
+    });
     it("should validate a URL with path, fragment & query", () => {
       assert.isNull(isUrl()('http://www.example.com/?foo=bar#quz'));
     });

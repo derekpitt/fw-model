@@ -13,7 +13,7 @@ exports.isMinLength = isMinLength;
 exports.isChecked = isChecked;
 exports.isLength = isLength;
 
-var _templateObject = _taggedTemplateLiteral(["^((https", ")://)", "(www.)?[a-z0-9]+(.[a-z]+)+(/[-a-zA-Z0-9@:%_+.~#?&//=]+/?)*$"], ["^((https", "):\\/\\/)", "(www.)?[a-z0-9]+(\\.[a-z]+)+(\\/[-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]+\\/?)*$"]);
+var _templateObject = _taggedTemplateLiteral(["^((https", ")://)", "(www.)?[a-z0-9]+(.[a-z]+)+(/?[-a-zA-Z0-9@:%_+.~#?&//=]+/?)*$"], ["^((https", "):\\/\\/)", "(www.)?[a-z0-9]+(\\.[a-z]+)+(\\/?[-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]+\\/?)*$"]);
 
 function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 

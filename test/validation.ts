@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { Form, field } from "../src/index";
-import { inRange, isUrl } from "../src/validators";
+import { inRange, isEmail, isInteger, isLength, isMinLength, isNumber, isUrl } from "../src/validators";
 
 class CustomFormWithValidate extends Form {
   constructor(private shouldAddToValidation = true) { super(); }
@@ -48,6 +48,17 @@ describe("validation", () => {
       }
 
       assert.isFalse(didThrow, "should not throw after calling validate");
+    });
+
+    it("should trim whitespaces before running validation", () => {
+      assert.isNull(isEmail('email@address.tld '));
+      assert.isNull(isUrl()('http://www.domain.tld '));
+      assert.isNull(isMinLength(3)('abc '));
+      assert.isNotNull(isMinLength(3)('ab '));
+      assert.isNull(isLength(3)('abc '));
+      assert.isNull(inRange(1,4)('3 '));
+      assert.isNull(isInteger('3 '));
+      assert.isNull(isNumber('3 '));
     });
   });
 

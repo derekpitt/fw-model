@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.1.22
+- fix: added trim on whitespaces
+
 ### 0.1.21
 - fix: ending slash support in URL
 

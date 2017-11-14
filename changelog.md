@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.1.23
+- fix: added support for enforcing http protocol
+
 ### 0.1.22
 - fix: added trim on whitespaces
 

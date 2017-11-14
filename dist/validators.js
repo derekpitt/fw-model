@@ -65,11 +65,12 @@ function inRange(min, max) {
 
 function isUrl() {
     var enforceSSL = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+    var enforceProtocol = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
     return function (input) {
         if (input == null || input.length == 0) return null;
         input = input.trim();
-        var urlRegEx = new RegExp(String.raw(_templateObject, enforceSSL ? '' : '?', enforceSSL ? '' : '?'));
+        var urlRegEx = new RegExp(String.raw(_templateObject, enforceSSL ? '' : '?', enforceSSL || enforceProtocol ? '' : '?'));
         return urlRegEx.test(input) ? null : "Not a valid " + (enforceSSL ? 'SSL ' : '') + "URL";
     };
 }

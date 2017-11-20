@@ -42,9 +42,9 @@ function setKeyType(target, key, type) {
     var isArray = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
     var isProperty = arguments.length <= 4 || arguments[4] === undefined ? false : arguments[4];
 
-    var keyTypes = Reflect.get(target.constructor, "model:keyTypes") || [];
+    var keyTypes = Reflect.getMetadata("model:keyTypes", target.constructor) || [];
     keyTypes.push({ key: key, type: type, isArray: isArray, isProperty: isProperty });
-    Reflect.set(target.constructor, "model:keyTypes", keyTypes);
+    Reflect.defineMetadata("model:keyTypes", keyTypes, target.constructor);
 }
 var typeUndefinedErrorMessage = "passed in type is undefined. is it defined above the calling class?";
 
@@ -103,7 +103,7 @@ function createFrom(cl, data) {
     if (cl instanceof Custom) return cl.cb(data, parent);
     var instance = new (Function.prototype.bind.apply(cl, []))();
     Object.assign(instance, data);
-    var keyTypes = Reflect.get(cl, "model:keyTypes");
+    var keyTypes = Reflect.getMetadata("model:keyTypes", cl);
     if (keyTypes) {
         keyTypes.forEach(function (kt) {
             if (data == null) return;
@@ -144,7 +144,7 @@ function field(friendly) {
     }
 
     return function (target, key) {
-        var fields = Reflect.get(target.constructor, "model:fields") || [];
+        var fields = getFields(target);
         fields.push({
             friendly: friendly,
             key: key,
@@ -152,12 +152,12 @@ function field(friendly) {
             fieldType: FieldType.Field,
             formCreator: null
         });
-        Reflect.set(target.constructor, "model:fields", fields);
+        Reflect.defineMetadata("model:fields", fields, target.constructor);
     };
 }
 
 function getFields(target) {
-    return Reflect.get(target.constructor, "model:fields") || [];
+    return Reflect.getMetadata("model:fields", target.constructor) || [];
 }
 
 function validateModel(model, fields, settings) {

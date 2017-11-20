@@ -17,9 +17,9 @@ class Custom {
 
 function setKeyType(target, key, type, isArray = false, isProperty = false) {
   const keyTypes: keyType[] =
-    Reflect.get(target.constructor, "model:keyTypes") || [];
+    (Reflect as any).getMetadata("model:keyTypes", target.constructor) || [];
   keyTypes.push({ key, type, isArray, isProperty });
-  Reflect.set(target.constructor, "model:keyTypes", keyTypes);
+  (Reflect as any).defineMetadata("model:keyTypes", keyTypes, target.constructor);
 }
 
 const typeUndefinedErrorMessage =
@@ -84,7 +84,7 @@ export function createFrom<T>(cl: makerOf<T>, data: any, parent = null): T {
   const instance = new (Function.prototype.bind.apply(cl, []))();
   Object.assign(instance, data);
 
-  const keyTypes: keyType[] = Reflect.get(cl, "model:keyTypes");
+  const keyTypes: keyType[] = (Reflect as any).getMetadata("model:keyTypes", cl);
   if (keyTypes) {
     keyTypes.forEach(kt => {
       if (data == null) return;
@@ -137,8 +137,7 @@ export interface Field {
 
 export function field(friendly: string, ...validators: Validator[]) {
   return function(target, key) {
-    const fields: Field[] =
-      Reflect.get(target.constructor, "model:fields") || [];
+    const fields: Field[] = getFields(target);
     fields.push({
       friendly,
       key,
@@ -146,12 +145,12 @@ export function field(friendly: string, ...validators: Validator[]) {
       fieldType: FieldType.Field,
       formCreator: null,
     });
-    Reflect.set(target.constructor, "model:fields", fields);
+    (Reflect as any).defineMetadata("model:fields", fields, target.constructor);
   };
 }
 
 export function getFields(target): Field[] {
-  return Reflect.get(target.constructor, "model:fields") || [];
+  return (Reflect as any).getMetadata("model:fields", target.constructor) || [];
 }
 
 export interface ValidationResult {

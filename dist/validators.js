@@ -17,6 +17,11 @@ var _templateObject = _taggedTemplateLiteral(["^((https", ")://)", "(www.)?[a-z0
 
 function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
+var trimInput = function trimInput(input) {
+    if (input != null && input.trim && typeof input.trim == "function") return input.trim();
+    return input;
+};
+
 function required(input) {
     if (input == null || input.length == 0) return "Required";
     var hasValue = input.toString().replace(/^\s+/, "").replace(/\s+$/, "").length > 0;
@@ -27,20 +32,20 @@ var emailRegEx = /^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@((?=[
 
 function isEmail(input) {
     if (input == null || input.length == 0) return null;
-    input = input.trim();
-    return emailRegEx.test(input.trim()) ? null : "Not a valid Email Address";
+    input = trimInput(input);
+    return emailRegEx.test(input) ? null : "Not a valid Email Address";
 }
 
 function isNumber(input) {
     if (input == null || input.length == 0) return null;
-    input = input.trim();
+    input = trimInput(input);
     var isNumeric = !isNaN(input - parseFloat(input));
     return isNumeric ? null : "Not a valid number";
 }
 
 function isInteger(input) {
     if (input == null || input.length == 0) return null;
-    input = input.trim();
+    input = trimInput(input);
     var isInt = parseFloat(input) - parseInt(input) === 0;
     return isInt ? null : "Not a valid integer";
 }
@@ -48,7 +53,7 @@ function isInteger(input) {
 function inRange(min, max) {
     return function (input) {
         if (input == null || input.length == 0) return null;
-        input = input.trim();
+        input = trimInput(input);
         var num = parseFloat(input);
         if (isNumber(input) != null) return null;
         if (min != null && max != null) {
@@ -69,7 +74,7 @@ function isUrl() {
 
     return function (input) {
         if (input == null || input.length == 0) return null;
-        input = input.trim();
+        input = trimInput(input);
         var urlRegEx = new RegExp(String.raw(_templateObject, enforceSSL ? '' : '?', enforceSSL || enforceProtocol ? '' : '?'));
         return urlRegEx.test(input) ? null : "Not a valid " + (enforceSSL ? 'SSL ' : '') + "URL";
     };
@@ -78,7 +83,7 @@ function isUrl() {
 function isMinLength(num) {
     return function (input) {
         if (input == null || input.length == 0) return null;
-        input = input.trim();
+        input = trimInput(input);
         return input.length >= num ? null : "Must be at least " + num + " characters";
     };
 }
@@ -90,7 +95,7 @@ function isChecked(input) {
 
 function isLength(num) {
     return function (input) {
-        input = input.trim();
+        input = trimInput(input);
         if (input.length < num) {
             return "Must be at least ${num} characters";
         }

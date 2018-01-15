@@ -82,37 +82,47 @@ describe("validation", () => {
   });
 
   describe("isUrl", () => {
-    it("should validate a simple URL", () => {
+    it("should validate a hostname with no options", () => {
       assert.isNull(isUrl()('example.com'));
+      assert.isNotNull(isUrl()('^'));
     });
-    it("should validate a URL without protocol", () => {
-      assert.isNull(isUrl()('www.example.com'));
+
+    it("should validate with protocol options", () => {
+      assert.isNull(isUrl({ requireProtocol: true })("http://example.com"));
+      assert.isNull(isUrl({ requireProtocol: true })("http://example.com"));
+      assert.isNull(isUrl({ requireProtocol: false })("http://example.com"));
+      assert.isNotNull(isUrl({ requireProtocol: true })("example.com"));
+
+      assert.isNull(isUrl({ allowedProtocols: [ "http" ], requireProtocol: true })("http://example.com"));
+      assert.isNull(isUrl({ allowedProtocols: [ "http" ], requireProtocol: false })("http://example.com"));
+
+      assert.isNotNull(isUrl({ allowedProtocols: [ "https" ], requireProtocol: true })("http://example.com"));
+      assert.isNotNull(isUrl({ allowedProtocols: [ "https" ], requireProtocol: false })("http://example.com"));
+      assert.isNull(isUrl({ allowedProtocols: [ "https" ], requireProtocol: true })("https://example.com"));
+      assert.isNull(isUrl({ allowedProtocols: [ "https" ], requireProtocol: false })("https://example.com"));
+
+      // if we don't require a protocol but the protocol in the string is not in the allowedProtocols list, fail:
+      assert.isNotNull(isUrl({ allowedProtocols: [ "https" ], requireProtocol: false })("http://example.com"));
+
+      assert.isNull(isUrl({ allowedProtocols: [ "https", "ftp" ], requireProtocol: true })("ftp://example.com"));
+      assert.isNull(isUrl({ allowedProtocols: [ "https", "ftp" ], requireProtocol: false })("ftp://example.com"));
     });
-    it("should validate a URL with http protocol", () => {
-      assert.isNull(isUrl()('http://www.example.com'));
+
+    it("should validate with path options", () => {
+      assert.isNull(isUrl({ allowPath: true })("example.com"));
+      assert.isNull(isUrl({ allowPath: true })("example.com/"));
+      assert.isNull(isUrl({ allowPath: true })("example.com/hey"));
+      assert.isNull(isUrl({ allowPath: true })("example.com/hey.html"));
+      assert.isNull(isUrl({ allowPath: true })("example.com/?foo=bar#qaz"));
+      assert.isNull(isUrl({ allowPath: true })("http://example.com/?foo=bar#qaz"));
+
+      assert.isNotNull(isUrl({ allowPath: false })("example.com/hey"));
     });
-    it("shouldn't validate a URL with broken protocol", () => {
-      assert.isNotNull(isUrl()('ht://www.example.com'));
-    });
-    it("should validate a SSL URL", () => {
-      assert.isNull(isUrl()('https://www.example.com'));
-    });
-    it("should enforce a SSL URL", () => {
-      assert.isNotNull(isUrl(true)('http://www.example.com'));
-    });
-    it("should enforce a http protocol", () => {
-      assert.isNotNull(isUrl(false, true)('example.com'));
-      assert.isNotNull(isUrl(false, true)('www.example.com'));
-      assert.isNull(isUrl(false, true)('http://example.com'));
-    });
-    it("should validate a URL with an ending slash", () => {
-      assert.isNull(isUrl()('http://www.example.com/'));
-    });
-    it("should validate a SSL URL with an ending slash", () => {
-      assert.isNull(isUrl(true)('https://www.example.com/'));
-    });
-    it("should validate a URL with path, fragment & query", () => {
-      assert.isNull(isUrl()('http://www.example.com/?foo=bar#quz'));
+
+    it("should validate with port options", () => {
+      assert.isNull(isUrl({ allowPort: true })("example.com:123"));
+
+      assert.isNotNull(isUrl({ allowPort: false })("example.com:123"));
     });
   });
 });

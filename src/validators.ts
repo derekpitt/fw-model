@@ -69,7 +69,7 @@ export interface UrlOptions {
 
 // this setup acts like a hostname validation
 const defaultUrlOptions: UrlOptions = {
-  allowedProtocols: [ "http", "https" ],
+  allowedProtocols: [],
   requireProtocol: false,
   allowPath: false,
   allowPort: false,

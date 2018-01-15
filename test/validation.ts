@@ -52,7 +52,7 @@ describe("validation", () => {
 
     it("should trim whitespaces before running validation", () => {
       assert.isNull(isEmail('email@address.tld '));
-      assert.isNull(isUrl()('http://www.domain.tld '));
+      assert.isNull(isUrl()('www.domain.tld '));
       assert.isNull(isMinLength(3)('abc '));
       assert.isNotNull(isMinLength(3)('ab '));
       assert.isNull(isLength(3)('abc '));
@@ -85,13 +85,15 @@ describe("validation", () => {
     it("should validate a hostname with no options", () => {
       assert.isNull(isUrl()('example.com'));
       assert.isNotNull(isUrl()('^'));
+      assert.isNotNull(isUrl()('example.com/'));
+      assert.isNotNull(isUrl()('http://example.com'));
     });
 
     it("should validate with protocol options", () => {
-      assert.isNull(isUrl({ requireProtocol: true })("http://example.com"));
-      assert.isNull(isUrl({ requireProtocol: true })("http://example.com"));
-      assert.isNull(isUrl({ requireProtocol: false })("http://example.com"));
-      assert.isNotNull(isUrl({ requireProtocol: true })("example.com"));
+      assert.isNull(isUrl({ allowedProtocols: [ "http" ], requireProtocol: true })("http://example.com"));
+      assert.isNull(isUrl({ allowedProtocols: [ "http" ], requireProtocol: true })("http://example.com"));
+      assert.isNull(isUrl({ allowedProtocols: [ "http" ], requireProtocol: false })("http://example.com"));
+      assert.isNotNull(isUrl({ allowedProtocols: [ "http" ], requireProtocol: true })("example.com"));
 
       assert.isNull(isUrl({ allowedProtocols: [ "http" ], requireProtocol: true })("http://example.com"));
       assert.isNull(isUrl({ allowedProtocols: [ "http" ], requireProtocol: false })("http://example.com"));
@@ -114,7 +116,7 @@ describe("validation", () => {
       assert.isNull(isUrl({ allowPath: true })("example.com/hey"));
       assert.isNull(isUrl({ allowPath: true })("example.com/hey.html"));
       assert.isNull(isUrl({ allowPath: true })("example.com/?foo=bar#qaz"));
-      assert.isNull(isUrl({ allowPath: true })("http://example.com/?foo=bar#qaz"));
+      assert.isNull(isUrl({ allowedProtocols: [ "http" ], allowPath: true })("http://example.com/?foo=bar#qaz"));
 
       assert.isNotNull(isUrl({ allowPath: false })("example.com/hey"));
     });

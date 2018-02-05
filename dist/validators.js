@@ -3,54 +3,38 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.required = required;
-exports.isEmail = isEmail;
-exports.isNumber = isNumber;
-exports.isInteger = isInteger;
-exports.inRange = inRange;
-exports.isUrl = isUrl;
-exports.isMinLength = isMinLength;
-exports.isChecked = isChecked;
-exports.isLength = isLength;
-
-var _templateObject = _taggedTemplateLiteral(["^((https", ")://)", "(www.)?[a-z0-9]+(.[a-z]+)+(/?[-a-zA-Z0-9@:%_+.~#?&//=]+/?)*$"], ["^((https", "):\\/\\/)", "(www.)?[a-z0-9]+(\\.[a-z]+)+(\\/?[-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]+\\/?)*$"]);
-
-function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
-
 var trimInput = function trimInput(input) {
     if (input != null && input.trim && typeof input.trim == "function") return input.trim();
     return input;
 };
-
-function required(input) {
+var required = function required(input) {
     if (input == null || input.length == 0) return "Required";
     var hasValue = input.toString().replace(/^\s+/, "").replace(/\s+$/, "").length > 0;
     return hasValue ? null : "Required";
-}
-
+};
+exports.required = required;
 var emailRegEx = /^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@((?=[a-z0-9-]{1,63}\.)(xn--)?[a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,63}$/i;
-
-function isEmail(input) {
+var isEmail = function isEmail(input) {
     if (input == null || input.length == 0) return null;
     input = trimInput(input);
     return emailRegEx.test(input) ? null : "Not a valid Email Address";
-}
-
-function isNumber(input) {
+};
+exports.isEmail = isEmail;
+var isNumber = function isNumber(input) {
     if (input == null || input.length == 0) return null;
     input = trimInput(input);
     var isNumeric = !isNaN(input - parseFloat(input));
     return isNumeric ? null : "Not a valid number";
-}
-
-function isInteger(input) {
+};
+exports.isNumber = isNumber;
+var isInteger = function isInteger(input) {
     if (input == null || input.length == 0) return null;
     input = trimInput(input);
     var isInt = parseFloat(input) - parseInt(input) === 0;
     return isInt ? null : "Not a valid integer";
-}
-
-function inRange(min, max) {
+};
+exports.isInteger = isInteger;
+var inRange = function inRange(min, max) {
     return function (input) {
         if (input == null || input.length == 0) return null;
         input = trimInput(input);
@@ -66,34 +50,63 @@ function inRange(min, max) {
             return null;
         }
     };
-}
+};
+exports.inRange = inRange;
+// this setup acts like a hostname validation
+var defaultUrlOptions = {
+    allowedProtocols: [],
+    requireProtocol: false,
+    allowPath: false,
+    allowPort: false
+};
+var isUrl = function isUrl() {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? defaultUrlOptions : arguments[0];
 
-function isUrl() {
-    var enforceSSL = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
-    var enforceProtocol = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
-
+    var opts = Object.assign({}, defaultUrlOptions, options);
+    // hostname regex
+    var regExStr = "(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])";
+    var protocolRegex = "";
+    if (opts.allowedProtocols != null && opts.allowedProtocols.length > 0) {
+        var withSlashes = opts.allowedProtocols.map(function (p) {
+            if (p.endsWith("://")) return p;
+            return p + "://";
+        });
+        protocolRegex = "(" + withSlashes.join("|") + ")";
+    }
+    if (!opts.requireProtocol && protocolRegex.length > 0) {
+        protocolRegex += "?";
+    }
+    var pathRegex = "";
+    if (opts.allowPath) {
+        pathRegex = "(/.*)?";
+    }
+    var portRegex = "";
+    if (opts.allowPort) {
+        portRegex = "(:\\d+)?";
+    }
+    var s = "^" + protocolRegex + regExStr + portRegex + pathRegex + "$";
+    var regEx = new RegExp(s);
     return function (input) {
         if (input == null || input.length == 0) return null;
         input = trimInput(input);
-        var urlRegEx = new RegExp(String.raw(_templateObject, enforceSSL ? '' : '?', enforceSSL || enforceProtocol ? '' : '?'));
-        return urlRegEx.test(input) ? null : "Not a valid " + (enforceSSL ? 'SSL ' : '') + "URL";
+        return regEx.test(input) ? null : "Not Valid";
     };
-}
-
-function isMinLength(num) {
+};
+exports.isUrl = isUrl;
+var isMinLength = function isMinLength(num) {
     return function (input) {
         if (input == null || input.length == 0) return null;
         input = trimInput(input);
         return input.length >= num ? null : "Must be at least " + num + " characters";
     };
-}
-
-function isChecked(input) {
+};
+exports.isMinLength = isMinLength;
+var isChecked = function isChecked(input) {
     if (input == null) return null;
     return input === true ? null : "Required";
-}
-
-function isLength(num) {
+};
+exports.isChecked = isChecked;
+var isLength = function isLength(num) {
     return function (input) {
         input = trimInput(input);
         if (input.length < num) {
@@ -101,4 +114,5 @@ function isLength(num) {
         }
         return null;
     };
-}
+};
+exports.isLength = isLength;

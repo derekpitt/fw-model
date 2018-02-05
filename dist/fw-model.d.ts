@@ -1,14 +1,20 @@
 declare module 'fw-model/validators' {
 	export type Validator = (input: any, model?: any, settings?: any) => string;
-	export function required(input: string): string;
-	export function isEmail(input: string): string;
-	export function isNumber(input: string): string;
-	export function isInteger(input: string): string;
-	export function inRange(min: number, max: number): (input: string) => string;
-	export function isUrl(enforceSSL?: boolean, enforceProtocol?: boolean): (input: string) => string;
-	export function isMinLength(num: number): (input: string) => string;
-	export function isChecked(input: any): string;
-	export function isLength(num: number): (input: string) => string;
+	export const required: (input: string) => string;
+	export const isEmail: (input: string) => string;
+	export const isNumber: (input: string) => string;
+	export const isInteger: (input: string) => string;
+	export const inRange: (min: number, max: number) => (input: string) => string;
+	export interface UrlOptions {
+	    allowedProtocols?: string[];
+	    requireProtocol?: boolean;
+	    allowPath?: boolean;
+	    allowPort?: boolean;
+	}
+	export const isUrl: (options?: UrlOptions) => (input: string) => string;
+	export const isMinLength: (num: number) => (input: string) => string;
+	export const isChecked: (input: any) => string;
+	export const isLength: (num: number) => (input: string) => string;
 
 }
 declare module 'fw-model' {

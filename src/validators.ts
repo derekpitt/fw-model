@@ -1,4 +1,11 @@
-export type Validator = (input: any, model?: any, settings?: any) => string;
+export type Validator<T = any> = (input: any, model?: T, settings?: any) => string;
+
+export interface ValidationBuilder<T> {
+  use(...validators: Validator<T>[]);
+  if(fs: (obj: T) => boolean, ...validators: Validator<T>[]);
+  same(fs: (obj: T) => any, message?: string);
+  matches(expr: RegExp, message: string);
+}
 
 const trimInput = input => {
   if (input != null && input.trim && typeof input.trim == "function")
@@ -122,7 +129,7 @@ export const isMinLength = (num: number) => {
     input = trimInput(input);
     return input.length >= num
       ? null
-      : "Must be at least " + num + " characters";
+      : `Must be at least ${num} characters`;
   };
 };
 
@@ -131,12 +138,7 @@ export const isChecked = (input: any) => {
   return input === true ? null : "Required";
 };
 
-export const isLength = (num: number) => {
-  return (input: string): string => {
-    input = trimInput(input);
-    if (input.length < num) {
-      return "Must be at least ${num} characters";
-    }
-    return null;
-  };
-};
+// wrap can take in simple validators and convert them to validation builder
+export const wrap = (...validators: Validator[]): (ValidationBuilder) => void => {
+  return b => b.use(...validators);
+}

@@ -66,20 +66,20 @@ const formForModelD = formFor(ModelD, s => {
 
 // validation creators
 const formForModelBWithValidation = formFor(ModelB, s => {
-  s.field(a => a.field2, "Field 2", Validators.required);
+  s.field(a => a.field2, "Field 2", b => b.use(Validators.required));
 });
 
 const formForModelFWithValidation = formFor(ModelF, s => {
-  s.field(a => a.pow, "Pow", Validators.required);
+  s.requiredField(a => a.pow, "Pow");
 });
 
 const formForModelCWithValidation = formFor(ModelC, s => {
-  s.field(a => a.hey, "Hey Now", Validators.required, Validators.isEmail);
+  s.field(a => a.hey, "Hey Now", b => b.use(Validators.required, Validators.isEmail));
   s.form(a => a.b, "Beee", formForModelBWithValidation);
 });
 
 const formForModelEWithValidation = formFor(ModelE, s => {
-  s.field(a => a.hey, "ok", Validators.required);
+  s.field(a => a.hey, "ok", b => b.use(Validators.required));
   s.form(a => a.b, "Beee", formForModelBWithValidation);
   s.formArray(a => a.cs, "Ceeees", formForModelCWithValidation);
   s.formProperty(a => a.f, "Pow", formForModelFWithValidation);
@@ -318,6 +318,107 @@ describe("form for", () => {
     );
     assert(instance.cs[0].hey == "new");
     assert(instance.cs[0].b.field2 == "new");
+  });
+
+  it("evaluates if in the builder", () => {
+    class TestClass {
+      pow: string;
+      hey: string;
+    }
+
+    const testClassFormCreator = formFor(TestClass, s => {
+      s.field(a => a.pow, "Pow");
+      s.field(a => a.hey, "Hey", b => b.if(model => model.pow == "1", Validators.required));
+    });
+
+    const g = createFrom(TestClass, {
+      pow: "hey",
+      hey: "",
+    });
+
+    const instance = testClassFormCreator(g);
+
+    // this should validate, since pow is not "1"
+    assert.doesNotThrow(() => instance.validate());
+
+    instance.pow = "1";
+
+    assert.throws(() => instance.validate());
+
+    instance.hey = "filled in";
+
+    assert.doesNotThrow(() => instance.validate());
+  });
+
+  it("evaluates same in the builder", () => {
+    class TestClass {
+      pow: string;
+      hey: string;
+    }
+
+    const testClassFormCreator = formFor(TestClass, s => {
+      s.field(a => a.pow, "Pow");
+      s.field(a => a.hey, "Hey", b => b.same(model => model.pow));
+    });
+
+    const g = createFrom(TestClass, {
+      pow: "hey",
+      hey: "",
+    });
+
+    const instance = testClassFormCreator(g);
+
+    assert.throws(() => instance.validate());
+    assert.include(instance.validation["hey"], "Pow");
+
+    instance.hey = "hey";
+
+    assert.doesNotThrow(() => instance.validate());
+  });
+
+  it("evaluates matches in the builder", () => {
+    class TestClass {
+      pow: string;
+    }
+
+    const testClassFormCreator = formFor(TestClass, s => {
+      s.field(a => a.pow, "Pow", b => b.matches(/^hey/, "Should start with 'hey'"));
+    });
+
+    const g = createFrom(TestClass, {
+      pow: "now",
+    });
+
+    const instance = testClassFormCreator(g);
+
+    assert.throws(() => instance.validate());
+    instance.pow = "hey now";
+
+    assert.doesNotThrow(() => instance.validate());
+  });
+
+  it("can also use builders with the requiredField shortcut", () => {
+    class TestClass {
+      pow: string;
+    }
+
+    const testClassFormCreator = formFor(TestClass, s => {
+      s.requiredField(a => a.pow, "Pow", b => b.use(Validators.isEmail));
+    });
+
+    const g = createFrom(TestClass, {
+      pow: "",
+    });
+
+    const instance = testClassFormCreator(g);
+
+    assert.throws(() => instance.validate());
+    instance.pow = "hey now";
+
+    assert.throws(() => instance.validate());
+
+    instance.pow = "derek@derek.com"
+    assert.doesNotThrow(() => instance.validate());
   });
 
   /*

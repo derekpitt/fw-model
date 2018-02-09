@@ -126,7 +126,7 @@ export enum FieldType {
   FormProperty,
 }
 
-export type ValidationBuilderArg = (builder: ValidationBuilder<any>, model?: any, settings?: any) => void;
+export type ValidationBuilderArg<T = any> = (builder: ValidationBuilder<T>, model?: T, settings?: any) => void;
 
 export interface Field {
   friendly: string;
@@ -290,11 +290,11 @@ export function nameOf<T>(expr: (T) => any): string {
 export class ModeledFormSetup<T> {
   private _fields: Field[] = [];
 
-  requiredField(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg[]) {
+  requiredField(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]) {
     this.field(fs, friendly, b => b.use(required), ...builders);
   }
 
-  field(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg[]) {
+  field(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]) {
     this._fields.push({
       friendly,
       validators: [],

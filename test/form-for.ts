@@ -2,8 +2,7 @@ import { assert } from "chai";
 
 import {
   formFor,
-  FormForType,
-  FormAsModel,
+  FormForType, FormAsModel,
   fromClass,
   fromClassArray,
   Validators,

@@ -44,7 +44,7 @@ declare module 'fw-model' {
 	    FormArray = 2,
 	    FormProperty = 3,
 	}
-	export type ValidationBuilderArg = (builder: ValidationBuilder<any>, model?: any, settings?: any) => void;
+	export type ValidationBuilderArg<T = any> = (builder: ValidationBuilder<T>, model?: T, settings?: any) => void;
 	export interface Field {
 	    friendly: string;
 	    key: string;
@@ -77,8 +77,8 @@ declare module 'fw-model' {
 	export function nameOf<T>(expr: (T) => any): string;
 	export class ModeledFormSetup<T> {
 	    private _fields;
-	    requiredField(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg[]): void;
-	    field(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg[]): void;
+	    requiredField(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]): void;
+	    field(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]): void;
 	    form<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
 	    formArray<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
 	    formProperty<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;

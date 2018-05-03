@@ -275,7 +275,7 @@ export function cloneOf<T>(modelType: makerOf<T>, instance: T): T {
 }
 
 // this may need to be hardened for minification... we'll see
-const getFieldNameRegEx = new RegExp("return (.*)[;}]");
+const getFieldNameRegEx = new RegExp("(?:return|=>)([^;}]*)");
 
 export function nameOf<T>(expr: (T) => any): string {
   const res = getFieldNameRegEx.exec(expr.toString());

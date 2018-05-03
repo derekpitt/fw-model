@@ -40,6 +40,20 @@ class ModelE {
   @fromPropertyClass(ModelF) f: { [key: string]: ModelF };
 }
 
+// Test es5 functions
+const formForModelES5A = formFor(ModelA, s => {
+  s.field(a => { return a.field1; }, "Field 1");
+});
+const formForModelES5B = formFor(ModelA, s => {
+  s.field(function(a) { return a.field1; }, "Field 1");
+});
+const formForModelES5C = formFor(ModelA, s => {
+  s.field(function(a) { return a.field1;}, "Field 1");
+});
+const formForModelES5D = formFor(ModelA, s => {
+  s.field(function(a) {return a.field1;}, "Field 1");
+});
+
 const formForModelA = formFor(ModelA, s => {
   s.field(a => a.field1, "Field 1");
 });
@@ -89,6 +103,20 @@ describe("form for", () => {
     const instance = formForModelA(null);
 
     assert(instance.field1 == null);
+  });
+
+  it("creates simple fields with es5 field functions", () => {
+    const instanceA = formForModelES5A(null);
+    assert(instanceA.field1 == null);
+
+    const instanceB = formForModelES5B(null);
+    assert(instanceB.field1 == null);
+
+    const instanceC = formForModelES5C(null);
+    assert(instanceB.field1 == null);
+
+    const instanceD = formForModelES5D(null);
+    assert(instanceB.field1 == null);
   });
 
   it("doesn't modify existing simple fields", () => {

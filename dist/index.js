@@ -302,7 +302,7 @@ function cloneOf(modelType, instance) {
 }
 
 // this may need to be hardened for minification... we'll see
-var getFieldNameRegEx = new RegExp("return (.*)[;}]");
+var getFieldNameRegEx = new RegExp("(?:return|=>)([^;}]*)");
 
 function nameOf(expr) {
     var res = getFieldNameRegEx.exec(expr.toString());

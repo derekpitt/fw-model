@@ -28,9 +28,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var _validators = require("./validators");
+var _validators2 = require("./validators");
 
-var importedValidators = _interopRequireWildcard(_validators);
+var importedValidators = _interopRequireWildcard(_validators2);
 
 var Custom = function Custom(cb) {
     _classCallCheck(this, Custom);
@@ -164,7 +164,38 @@ function validateModel(model, fields, settings) {
     var result = [];
     fields.forEach(function (f) {
         var value = model[f.key];
-        if (f.validators) {
+        if (f.validatorBuilders && f.validatorBuilders.length > 0) {
+            var b = new TheValidationBuilder(value, model, settings, fields);
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = f.validatorBuilders[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var vb = _step.value;
+
+                    if (vb != null) vb(b, model, settings);
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator["return"]) {
+                        _iterator["return"]();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            var message = b.validate();
+            if (message != null) {
+                result.push({ message: message, field: f.key });
+            }
+        } else if (f.validators) {
             for (var i = 0; i < f.validators.length; i++) {
                 var message = f.validators[i].apply(null, [value, model, settings]);
                 if (message != null) {
@@ -290,15 +321,27 @@ var ModeledFormSetup = (function () {
     }
 
     _createClass(ModeledFormSetup, [{
+        key: "requiredField",
+        value: function requiredField(fs, friendly) {
+            for (var _len2 = arguments.length, builders = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+                builders[_key2 - 2] = arguments[_key2];
+            }
+
+            this.field.apply(this, [fs, friendly, function (b) {
+                return b.use(_validators2.required);
+            }].concat(builders));
+        }
+    }, {
         key: "field",
         value: function field(fs, friendly) {
-            for (var _len2 = arguments.length, validators = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-                validators[_key2 - 2] = arguments[_key2];
+            for (var _len3 = arguments.length, builders = Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
+                builders[_key3 - 2] = arguments[_key3];
             }
 
             this._fields.push({
                 friendly: friendly,
-                validators: validators,
+                validators: [],
+                validatorBuilders: builders,
                 key: nameOf(fs),
                 fieldType: FieldType.Field,
                 formCreator: null
@@ -557,6 +600,71 @@ function formFor(t, setup) {
         return fasm;
     };
 }
+
+var TheValidationBuilder = (function () {
+    function TheValidationBuilder(value, model, settings, fields) {
+        _classCallCheck(this, TheValidationBuilder);
+
+        this.value = value;
+        this.model = model;
+        this.settings = settings;
+        this.fields = fields;
+        this.validators = [];
+    }
+
+    _createClass(TheValidationBuilder, [{
+        key: "use",
+        value: function use() {
+            var _validators;
+
+            (_validators = this.validators).push.apply(_validators, arguments);
+        }
+    }, {
+        key: "if",
+        value: function _if(fs) {
+            for (var _len4 = arguments.length, validators = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+                validators[_key4 - 1] = arguments[_key4];
+            }
+
+            if (fs(this.model)) this.use.apply(this, validators);
+        }
+    }, {
+        key: "same",
+        value: function same(fs, message) {
+            var _this7 = this;
+
+            var key = nameOf(fs);
+            this.use(function (input, model) {
+                if (input === model[key]) return null;
+                if (message) return message;
+                var f = _this7.fields.find(function (f) {
+                    return f.key == key;
+                });
+                return "Must Match " + (f == null ? key : f.friendly);
+            });
+        }
+    }, {
+        key: "matches",
+        value: function matches(expr, message) {
+            this.use(function (input) {
+                return expr.test(input) ? null : message;
+            });
+        }
+    }, {
+        key: "validate",
+        value: function validate() {
+            for (var i = 0; i < this.validators.length; i++) {
+                var message = this.validators[i].apply(null, [this.value, this.model, this.settings]);
+                if (message != null) {
+                    return message;
+                }
+            }
+            return null;
+        }
+    }]);
+
+    return TheValidationBuilder;
+})();
 
 var Validators = importedValidators;
 exports.Validators = Validators;

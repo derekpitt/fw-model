@@ -106,13 +106,14 @@ var isChecked = function isChecked(input) {
     return input === true ? null : "Required";
 };
 exports.isChecked = isChecked;
-var isLength = function isLength(num) {
-    return function (input) {
-        input = trimInput(input);
-        if (input.length < num) {
-            return "Must be at least ${num} characters";
-        }
-        return null;
+// wrap can take in simple validators and convert them to validation builder
+var wrap = function wrap() {
+    for (var _len = arguments.length, validators = Array(_len), _key = 0; _key < _len; _key++) {
+        validators[_key] = arguments[_key];
+    }
+
+    return function (b) {
+        return b.use.apply(b, validators);
     };
 };
-exports.isLength = isLength;
+exports.wrap = wrap;

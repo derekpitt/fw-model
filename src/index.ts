@@ -1,4 +1,4 @@
-import { Validator } from "./validators";
+import { Validator, ValidationBuilder, required } from "./validators";
 
 export interface makerOf<T> {
   new (...args): T;
@@ -126,10 +126,13 @@ export enum FieldType {
   FormProperty,
 }
 
+export type ValidationBuilderArg<T = any> = (builder: ValidationBuilder<T>, model?: T, settings?: any) => void;
+
 export interface Field {
   friendly: string;
   key: string;
   validators: Validator[];
+  validatorBuilders?: ValidationBuilderArg[];
 
   fieldType: FieldType;
   formCreator: Function;
@@ -168,7 +171,17 @@ export function validateModel(
   fields.forEach(f => {
     const value = model[f.key];
 
-    if (f.validators) {
+    if (f.validatorBuilders && f.validatorBuilders.length > 0) {
+      const b = new TheValidationBuilder(value, model, settings, fields);
+      for (const vb of f.validatorBuilders) {
+        if (vb != null) vb(b, model, settings);
+      }
+
+      const message = b.validate();
+      if (message != null) {
+        result.push({ message, field: f.key });
+      }
+    } else if (f.validators) {
       for (let i = 0; i < f.validators.length; i++) {
         const message = f.validators[i].apply(null, [value, model, settings]);
         if (message != null) {
@@ -277,10 +290,15 @@ export function nameOf<T>(expr: (T) => any): string {
 export class ModeledFormSetup<T> {
   private _fields: Field[] = [];
 
-  field(fs: (obj: T) => any, friendly: string, ...validators: Validator[]) {
+  requiredField(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]) {
+    this.field(fs, friendly, b => b.use(required), ...builders);
+  }
+
+  field(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]) {
     this._fields.push({
       friendly,
-      validators,
+      validators: [],
+      validatorBuilders: builders,
       key: nameOf(fs),
       fieldType: FieldType.Field,
       formCreator: null,
@@ -565,6 +583,46 @@ export function formFor<ModelT>(
 
     return fasm as FormForType<ModelT>;
   };
+}
+
+class TheValidationBuilder<T> implements ValidationBuilder<T> {
+  validators: Validator[] = [];
+
+  constructor(private value: any, private model: any, private settings: any, private fields: Field[]) {}
+
+  use(...validators: Validator[]) {
+    this.validators.push(...validators);
+  }
+
+  if(fs: (obj: T) => boolean, ...validators: Validator<T>[]) {
+    if (fs(this.model)) this.use(...validators);
+  }
+
+  same(fs: (obj: T) => any, message?: string) {
+    const key = nameOf(fs);
+    this.use((input, model) => {
+      if (input === model[key]) return null;
+      if (message) return message;
+
+      const f = this.fields.find(f => f.key == key);
+      return `Must Match ${f == null ? key : f.friendly}`;
+    });
+  }
+
+  matches(expr: RegExp, message: string) {
+    this.use(input => expr.test(input) ? null : message);
+  }
+
+  validate() {
+    for (let i = 0; i < this.validators.length; i++) {
+      const message = this.validators[i].apply(null, [this.value, this.model, this.settings]);
+      if (message != null) {
+        return message;
+      }
+    }
+
+    return null;
+  }
 }
 
 import * as importedValidators from "./validators";

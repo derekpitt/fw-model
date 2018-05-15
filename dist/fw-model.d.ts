@@ -1,5 +1,11 @@
 declare module 'fw-model/validators' {
-	export type Validator = (input: any, model?: any, settings?: any) => string;
+	export type Validator<T = any> = (input: any, model?: T, settings?: any) => string;
+	export interface ValidationBuilder<T> {
+	    use(...validators: Validator<T>[]): any;
+	    if(fs: (obj: T) => boolean, ...validators: Validator<T>[]): any;
+	    same(fs: (obj: T) => any, message?: string): any;
+	    matches(expr: RegExp, message: string): any;
+	}
 	export const required: (input: string) => string;
 	export const isEmail: (input: string) => string;
 	export const isNumber: (input: string) => string;
@@ -14,11 +20,11 @@ declare module 'fw-model/validators' {
 	export const isUrl: (options?: UrlOptions) => (input: string) => string;
 	export const isMinLength: (num: number) => (input: string) => string;
 	export const isChecked: (input: any) => string;
-	export const isLength: (num: number) => (input: string) => string;
+	export const wrap: (...validators: Validator<any>[]) => (ValidationBuilder: any) => void;
 
 }
 declare module 'fw-model' {
-	import { Validator } from 'fw-model/validators';
+	import { Validator, ValidationBuilder } from 'fw-model/validators';
 	export interface makerOf<T> {
 	    new (...args: any[]): T;
 	}
@@ -38,10 +44,12 @@ declare module 'fw-model' {
 	    FormArray = 2,
 	    FormProperty = 3,
 	}
+	export type ValidationBuilderArg<T = any> = (builder: ValidationBuilder<T>, model?: T, settings?: any) => void;
 	export interface Field {
 	    friendly: string;
 	    key: string;
 	    validators: Validator[];
+	    validatorBuilders?: ValidationBuilderArg[];
 	    fieldType: FieldType;
 	    formCreator: Function;
 	}
@@ -69,7 +77,8 @@ declare module 'fw-model' {
 	export function nameOf<T>(expr: (T) => any): string;
 	export class ModeledFormSetup<T> {
 	    private _fields;
-	    field(fs: (obj: T) => any, friendly: string, ...validators: Validator[]): void;
+	    requiredField(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]): void;
+	    field(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]): void;
 	    form<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
 	    formArray<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
 	    formProperty<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;

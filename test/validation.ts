@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { Form, field } from "../src/index";
-import { inRange, isEmail, isInteger, isLength, isMinLength, isNumber, isUrl } from "../src/validators";
+import { inRange, isEmail, isInteger, isMinLength, isNumber, isUrl } from "../src/validators";
 
 class CustomFormWithValidate extends Form {
   constructor(private shouldAddToValidation = true) { super(); }
@@ -22,15 +22,7 @@ describe("validation", () => {
     it("should call custom validation when present", () => {
       const instance = new CustomFormWithValidate();
 
-      let didThrow = false;
-
-      try {
-        instance.validate();
-      } catch(err) {
-        didThrow = true;
-      }
-
-      assert.isTrue(didThrow, "should throw after calling validate");
+      assert.throws(() => instance.validate());
 
       assert(instance.validationMessages.length == 1, "did not add to validationMessages");
       assert(instance.validation["f1"] == "f1 message", "did not add to validation.f1");
@@ -38,16 +30,7 @@ describe("validation", () => {
 
     it("should not throw when it didn't call adder", () => {
       const instance = new CustomFormWithValidate(false);
-
-      let didThrow = false;
-
-      try {
-        instance.validate();
-      } catch(err) {
-        didThrow = true;
-      }
-
-      assert.isFalse(didThrow, "should not throw after calling validate");
+      assert.doesNotThrow(() => instance.validate(), "should not throw after calling validate");
     });
 
     it("should trim whitespaces before running validation", () => {
@@ -55,7 +38,6 @@ describe("validation", () => {
       assert.isNull(isUrl()('www.domain.tld '));
       assert.isNull(isMinLength(3)('abc '));
       assert.isNotNull(isMinLength(3)('ab '));
-      assert.isNull(isLength(3)('abc '));
       assert.isNull(inRange(1,4)('3 '));
       assert.isNull(isInteger('3 '));
       assert.isNull(isNumber('3 '));
@@ -82,7 +64,7 @@ describe("validation", () => {
   });
 
   describe("isUrl", () => {
-    it("should validate a hostname with no options", () => {
+    it("should validate as a hostname when no options", () => {
       assert.isNull(isUrl()('example.com'));
       assert.isNotNull(isUrl()('^'));
       assert.isNotNull(isUrl()('example.com/'));

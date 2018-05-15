@@ -103,20 +103,27 @@ export const isUrl = (options: UrlOptions = defaultUrlOptions) => {
     protocolRegex += "?";
   }
 
+  // Path
   let pathRegex = "";
   if (opts.allowPath) {
     pathRegex = "(/.*)?";
   }
 
+  // Port
   let portRegex = "";
   if (opts.allowPort) {
     portRegex = "(:\\d+)?";
   }
 
-  const s = "^" + protocolRegex + regExStr + portRegex + pathRegex + "$";
+  const tldRegex = "(\\.[a-zA-Z]{2,6})";
+
+  const s = "^" + protocolRegex + regExStr + tldRegex + portRegex + pathRegex + "$";
   const regEx = new RegExp(s);
 
   return (input: string) => {
+
+    console.log(s);
+
     if (input == null || input.length == 0) return null;
     input = trimInput(input);
     return regEx.test(input) ? null : "Not Valid";

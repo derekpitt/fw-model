@@ -92,6 +92,21 @@ describe("validation", () => {
       assert.isNull(isUrl({ allowedProtocols: [ "https", "ftp" ], requireProtocol: false })("ftp://example.com"));
     });
 
+    it("should invalidate with allowedProtocols when the url is invalid without a protocol", () => {
+      assert.isNotNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("invalid-url"));
+    });
+    it("should invalidate with allowedProtocols when the url is invalid with a protocol", () => {
+      assert.isNotNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("http://invalid-url"));
+    });
+
+    it("should validate with allowedProtocols when the url is valid", () => {
+      assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("http://valid-url.tld"));
+    });
+
+    it("should validate with allowedProtocols when the url is valid but no protocol", () => {
+      assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("valid-url-no-protocol.tld"));
+    });
+
     it("should validate with path options", () => {
       assert.isNull(isUrl({ allowPath: true })("example.com"));
       assert.isNull(isUrl({ allowPath: true })("example.com/"));

@@ -16,6 +16,7 @@ declare module 'fw-model/validators' {
 	    requireProtocol?: boolean;
 	    allowPath?: boolean;
 	    allowPort?: boolean;
+	    requireTld?: boolean;
 	}
 	export const isUrl: (options?: UrlOptions) => (input: string) => string;
 	export const isMinLength: (num: number) => (input: string) => string;

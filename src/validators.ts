@@ -72,6 +72,7 @@ export interface UrlOptions {
   requireProtocol?: boolean;
   allowPath?: boolean;
   allowPort?: boolean;
+  requireTld?: boolean;
 }
 
 // this setup acts like a hostname validation
@@ -80,6 +81,7 @@ const defaultUrlOptions: UrlOptions = {
   requireProtocol: false,
   allowPath: false,
   allowPort: false,
+  requireTld: false
 };
 
 export const isUrl = (options: UrlOptions = defaultUrlOptions) => {
@@ -115,15 +117,16 @@ export const isUrl = (options: UrlOptions = defaultUrlOptions) => {
     portRegex = "(:\\d+)?";
   }
 
-  const tldRegex = "(\\.[a-zA-Z]{2,6})";
-
+  // TLD
+  let tldRegex = "";
+  if (opts.requireTld) {
+    tldRegex = "(\\.[a-zA-Z]{2,6})";
+  }
+  
   const s = "^" + protocolRegex + regExStr + tldRegex + portRegex + pathRegex + "$";
   const regEx = new RegExp(s);
 
   return (input: string) => {
-
-    console.log(s);
-
     if (input == null || input.length == 0) return null;
     input = trimInput(input);
     return regEx.test(input) ? null : "Not Valid";

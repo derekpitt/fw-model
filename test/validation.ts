@@ -85,26 +85,48 @@ describe("validation", () => {
       assert.isNull(isUrl({ allowedProtocols: [ "https" ], requireProtocol: true })("https://example.com"));
       assert.isNull(isUrl({ allowedProtocols: [ "https" ], requireProtocol: false })("https://example.com"));
 
-      // if we don't require a protocol but the protocol in the string is not in the allowedProtocols list, fail:
-      assert.isNotNull(isUrl({ allowedProtocols: [ "https" ], requireProtocol: false })("http://example.com"));
-
       assert.isNull(isUrl({ allowedProtocols: [ "https", "ftp" ], requireProtocol: true })("ftp://example.com"));
       assert.isNull(isUrl({ allowedProtocols: [ "https", "ftp" ], requireProtocol: false })("ftp://example.com"));
     });
 
-    it("should invalidate with allowedProtocols when the url is invalid without a protocol", () => {
-      assert.isNotNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("invalid-url"));
-    });
-    it("should invalidate with allowedProtocols when the url is invalid with a protocol", () => {
-      assert.isNotNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("http://invalid-url"));
+    describe("when allowedProtocols option is set", () => {
+      it("should invalidate a url without an allowed protocol", () => {
+        assert.isNotNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("ftp://invalid-url"));
+      });
+      it("should validate a url with a protocol", () => {
+        assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("http://invalid-url"));
+      });
+      it("should validate with allowedProtocols when the url is valid but no protocol", () => {
+        assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("valid-url-no-protocol.tld"));
+      });
     });
 
-    it("should validate with allowedProtocols when the url is valid", () => {
-      assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("http://valid-url.tld"));
-    });
-
-    it("should validate with allowedProtocols when the url is valid but no protocol", () => {
-      assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true })("valid-url-no-protocol.tld"));
+    describe("when requireTld option is set to true", () => {
+      it("should validate a URL with a tld", () => {
+        assert.isNull(isUrl({ requireTld: true })("example.com"));
+      });
+      it("should validate a URL with a tld and a protocol", () => {
+        assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], requireTld: true })("http://example.com"));
+      });
+      it("should validate a URL with a tld, a protocol & a path", () => {
+        assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, requireTld: true })("http://example.com/path/here/to/somewhere"));
+      });
+      it("should validate a URL with a tld, a protocol, a path & a port", () => {
+        assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true, requireTld: true })("http://example.com:8000/path/here/to/somewhere"));
+      });
+      
+      it("should invalidate a URL without a tld", () => {
+        assert.isNotNull(isUrl({ requireTld: true })("example"));
+      });
+      it("should invalidate a URL without a tld but with a protocol", () => {
+        assert.isNotNull(isUrl({ allowedProtocols: [ "http", "https" ], requireTld: true })("http://example"));
+      });
+      it("should invalidate a URL without a tld but with a protocol & a path", () => {
+        assert.isNotNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, requireTld: true })("http://example/path/here/to/somewhere"));
+      });
+      it("should invalidate a URL without a tld but with a protocol, a path & a port", () => {
+        assert.isNotNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true, requireTld: true })("http://example:8000/path/here/to/somewhere"));
+      });
     });
 
     it("should validate with path options", () => {

@@ -57,7 +57,8 @@ var defaultUrlOptions = {
     allowedProtocols: [],
     requireProtocol: false,
     allowPath: false,
-    allowPort: false
+    allowPort: false,
+    requireTld: false
 };
 var isUrl = function isUrl() {
     var options = arguments.length <= 0 || arguments[0] === undefined ? defaultUrlOptions : arguments[0];
@@ -76,15 +77,22 @@ var isUrl = function isUrl() {
     if (!opts.requireProtocol && protocolRegex.length > 0) {
         protocolRegex += "?";
     }
+    // Path
     var pathRegex = "";
     if (opts.allowPath) {
         pathRegex = "(/.*)?";
     }
+    // Port
     var portRegex = "";
     if (opts.allowPort) {
         portRegex = "(:\\d+)?";
     }
-    var s = "^" + protocolRegex + regExStr + portRegex + pathRegex + "$";
+    // TLD
+    var tldRegex = "";
+    if (opts.requireTld) {
+        tldRegex = "(\\.[a-zA-Z]{2,6})";
+    }
+    var s = "^" + protocolRegex + regExStr + tldRegex + portRegex + pathRegex + "$";
     var regEx = new RegExp(s);
     return function (input) {
         if (input == null || input.length == 0) return null;

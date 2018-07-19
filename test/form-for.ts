@@ -40,6 +40,29 @@ class ModelE {
   @fromPropertyClass(ModelF) f: { [key: string]: ModelF };
 }
 
+interface Widget {
+  type: string;
+}
+
+class Widgets {
+  widgets: Widget[];
+}
+
+class OneWidget {
+  widget: Widget;
+}
+
+class Widget1 implements Widget {
+  type = "widget-1";
+  pow: string;
+}
+
+class Widget2 implements Widget {
+  type = "widget-2";
+  pow2: string;
+  @fromClass b: ModelB;
+}
+
 // Test es5 functions
 const formForModelES5A = formFor(ModelA, s => {
   s.field(a => { return a.field1; }, "Field 1");
@@ -96,6 +119,37 @@ const formForModelEWithValidation = formFor(ModelE, s => {
   s.form(a => a.b, "Beee", formForModelBWithValidation);
   s.formArray(a => a.cs, "Ceeees", formForModelCWithValidation);
   s.formProperty(a => a.f, "Pow", formForModelFWithValidation);
+});
+
+const formForWidget1 = formFor(Widget1, s => {
+  s.requiredField(a => a.pow, "Pow");
+});
+
+const formForWidget2 = formFor(Widget2, s => {
+  s.requiredField(a => a.pow2, "Pow");
+  s.form(a => a.b, "b", formForModelBWithValidation);
+});
+
+const formForWidgets = formFor(Widgets, s => {
+  s.formArray(a => a.widgets, "Widgets", data => {
+    switch (data.type) {
+      case "widget-1": return formForWidget1(data as Widget1);
+      case "widget-2": return formForWidget2(data as Widget2);
+    }
+
+    return null;
+  });
+});
+
+const formFormOneWidget = formFor(OneWidget, s => {
+  s.form(a => a.widget, "Widget", data => {
+    switch (data.type) {
+      case "widget-1": return formForWidget1(data as Widget1);
+      case "widget-2": return formForWidget2(data as Widget2);
+    }
+
+    return null;
+  });
 });
 
 describe("form for", () => {
@@ -471,4 +525,130 @@ describe("form for", () => {
     assert(updated.b.field2 == "powpow");
   });
   */
+
+  describe("polymorphic arrays", () => {
+    it("can handle different validations for formArrays on polymorphic objects", () => {
+      const widgets = createFrom(Widgets, {
+        widgets: [
+          { type: "widget-1", pow: "" },
+          { type: "widget-2", pow2: "", b: { field2: "" } },
+        ]
+      });
+
+      const widgetsForm = formForWidgets(widgets);
+
+      assert.throws(() => widgetsForm.validate());
+      (widgetsForm.widgets[0] as Widget1).pow = "hey";
+      (widgetsForm.widgets[1] as Widget2).pow2 = "hey";
+      (widgetsForm.widgets[1] as Widget2).b.field2 = "hey";
+
+      assert.doesNotThrow(() => widgetsForm.validate());
+    });
+
+    it("can handle different validations for formArrays on polymorphic objects with object change", () => {
+      const widgets = createFrom(Widgets, {
+        widgets: [
+          { type: "widget-1", pow: "" },
+        ]
+      });
+
+      const w2 = formForWidget2({ type: "widget-2", pow2: "", b: { field2: "" } });
+
+      const widgetsForm = formForWidgets(widgets);
+
+      assert.throws(() => widgetsForm.validate());
+      (widgetsForm.widgets[0] as Widget1).pow = "hey";
+      assert.doesNotThrow(() => widgetsForm.validate());
+
+      widgetsForm.widgets[0] = w2;
+
+      assert.throws(() => widgetsForm.validate());
+      (widgetsForm.widgets[0] as Widget2).pow2 = "hey";
+      (widgetsForm.widgets[0] as Widget2).b.field2 = "hey";
+      assert.doesNotThrow(() => widgetsForm.validate());
+    });
+  });
+
+  describe("polymorphic arrays", () => {
+    it("can handle different validations for formArrays on polymorphic objects", () => {
+      const widgets = createFrom(Widgets, {
+        widgets: [
+          { type: "widget-1", pow: "" },
+          { type: "widget-2", pow2: "", b: { field2: "" } },
+        ]
+      });
+
+      const widgetsForm = formForWidgets(widgets);
+
+      assert.throws(() => widgetsForm.validate());
+      (widgetsForm.widgets[0] as Widget1).pow = "hey";
+      (widgetsForm.widgets[1] as Widget2).pow2 = "hey";
+      (widgetsForm.widgets[1] as Widget2).b.field2 = "hey";
+
+      assert.doesNotThrow(() => widgetsForm.validate());
+    });
+
+    it("can handle different validations for formArrays on polymorphic objects with object change", () => {
+      const widgets = createFrom(Widgets, {
+        widgets: [
+          { type: "widget-1", pow: "" },
+        ]
+      });
+
+      const w2 = formForWidget2({ type: "widget-2", pow2: "", b: { field2: "" } });
+
+      const widgetsForm = formForWidgets(widgets);
+
+      assert.throws(() => widgetsForm.validate());
+      (widgetsForm.widgets[0] as Widget1).pow = "hey";
+      assert.doesNotThrow(() => widgetsForm.validate());
+
+      widgetsForm.widgets[0] = w2;
+
+      assert.throws(() => widgetsForm.validate());
+      (widgetsForm.widgets[0] as Widget2).pow2 = "hey";
+      (widgetsForm.widgets[0] as Widget2).b.field2 = "hey";
+      assert.doesNotThrow(() => widgetsForm.validate());
+    });
+
+    it("can handle different validations for form on polymorphic objects", () => {
+      const widget = createFrom(OneWidget, {
+        widget: { type: "widget-1", pow: "" },
+      });
+
+      const widgetForm = formFormOneWidget(widget);
+
+      assert.throws(() => widgetForm.validate());
+      (widgetForm.widget as Widget1).pow = "hey";
+
+      assert.doesNotThrow(() => widgetForm.validate());
+    });
+
+    it("can handle different validations for form on polymorphic objects with object change", () => {
+      const widget = createFrom(OneWidget, {
+        widget: { type: "widget-1", pow: "" },
+      });
+
+      const widgetForm = formFormOneWidget(widget);
+      const w2 = formForWidget2({ type: "widget-2", pow2: "", b: { field2: "" } });
+
+      assert.throws(() => widgetForm.validate());
+      (widgetForm.widget as Widget1).pow = "hey";
+
+      assert.doesNotThrow(() => widgetForm.validate());
+
+      console.log("");
+      console.log(widgetForm.updatedModel());
+
+      widgetForm.widget = w2;
+
+      assert.throws(() => widgetForm.validate());
+      (widgetForm.widget as Widget2).pow2 = "hey";
+      (widgetForm.widget as Widget2).b.field2 = "hey";
+      assert.doesNotThrow(() => widgetForm.validate());
+
+      console.log("");
+      console.log(widgetForm.updatedModel());
+    });
+  });
 });

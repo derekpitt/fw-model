@@ -306,7 +306,7 @@ export class ModeledFormSetup<T> {
   }
 
   form<AnotherT>(
-    fs: (obj: T) => any,
+    fs: (obj: T) => AnotherT,
     friendly: string,
     formCreator: (thing: AnotherT) => FormForType<AnotherT>,
   ) {
@@ -320,7 +320,7 @@ export class ModeledFormSetup<T> {
   }
 
   formArray<AnotherT>(
-    fs: (obj: T) => any,
+    fs: (obj: T) => AnotherT[],
     friendly: string,
     formCreator: (thing: AnotherT) => FormForType<AnotherT>,
   ) {

@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "./node_modules/.bin/gulp build",
+    "build": "rollup -c rollup.config.js",
     "test": "./node_modules/.bin/gulp test"
   },
   "author": "",
@@ -23,7 +23,11 @@
     "gulp-typescript": "^2.13.6",
     "istanbul": "^0.4.4",
     "mocha": "^3.0.2",
+    "rollup": "^1.0.2",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-typescript": "^1.0.0",
     "run-sequence": "^1.2.1",
+    "tslib": "^1.9.3",
     "typescript": "^2.6.1",
     "vinyl-paths": "^2.1.0"
   },

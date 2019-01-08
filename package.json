@@ -26,5 +26,8 @@
     "run-sequence": "^1.2.1",
     "typescript": "^2.6.1",
     "vinyl-paths": "^2.1.0"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.12"
   }
 }

@@ -1,4 +1,5 @@
 import { Validator, ValidationBuilder, required } from "./validators";
+import 'reflect-metadata';
 
 export interface makerOf<T> {
   new (...args): T;

@@ -30,6 +30,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _validators2 = require("./validators");
 
+require('reflect-metadata');
+
 var importedValidators = _interopRequireWildcard(_validators2);
 
 var Custom = function Custom(cb) {

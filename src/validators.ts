@@ -148,6 +148,13 @@ export const isChecked = (input: any) => {
   return input === true ? null : "Required";
 };
 
+export const doesNotContainCharacters = (charactersRegex: string) => {
+  return (input: string) => {
+    const globalRegex: RegExp = new RegExp(charactersRegex, 'g');
+    return globalRegex.test(input) ? `The value cannot contain the character${charactersRegex.length > 1 ? 's' : ''} '${charactersRegex}'.` : null;
+  };
+};
+
 // wrap can take in simple validators and convert them to validation builder
 export const wrap = (...validators: Validator[]): (ValidationBuilder) => void => {
   return b => b.use(...validators);

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { Form, field } from "../src/index";
-import { inRange, isEmail, isInteger, isMinLength, isNumber, isUrl } from "../src/validators";
+import { inRange, isEmail, isInteger, isMinLength, isNumber, isUrl, doesNotContainCharacters } from "../src/validators";
 
 class CustomFormWithValidate extends Form {
   constructor(private shouldAddToValidation = true) { super(); }
@@ -60,6 +60,26 @@ describe("validation", () => {
       assert.isNull(inRange(0,100)("50"));
       assert.isNotNull(inRange(0,100)("-1"));
       assert.isNotNull(inRange(0, 100)("101"));
+    });
+  });
+
+  describe("doesNotContainCharacters validator", () => {
+    let validator;
+
+    beforeEach(() => {
+      validator = doesNotContainCharacters('z-');
+    });
+
+    describe("when the input contains the forbidden character", () => {
+      it("should not validate the value", () => {
+        assert.isNotNull(validator('hello worldz!'));
+      });
+    });
+
+    describe("when the input does not contain the forbidden character", () => {
+      it("should validate the value", () => {
+        assert.isNull(validator('hello world'));
+      });
     });
   });
 

@@ -21,6 +21,7 @@ declare module 'fw-model/validators' {
 	export const isUrl: (options?: UrlOptions) => (input: string) => string;
 	export const isMinLength: (num: number) => (input: string) => string;
 	export const isChecked: (input: any) => string;
+	export const doesNotContainCharacters: (charactersRegex: string) => (input: string) => string;
 	export const wrap: (...validators: Validator<any>[]) => (ValidationBuilder: any) => void;
 
 }
@@ -32,7 +33,7 @@ declare module 'fw-model' {
 	export function fromClass(target: any, key: any, descriptor?: any): void;
 	export function fromClassArray(arrayType: any): (target: any, key: any, descriptor?: any) => void;
 	export function fromPropertyClass(propertyClass: any): (target: any, key: any, descriptor?: any) => void;
-	export function fromCustom(customFunction: (data, parent) => any): (target: any, key: any, descriptor?: any) => void;
+	export function fromCustom(customFunction: (data: any, parent: any) => any): (target: any, key: any, descriptor?: any) => void;
 	export function createFromProperties<T>(cl: makerOf<T>, data: any): {
 	    [key: string]: T;
 	};
@@ -43,7 +44,7 @@ declare module 'fw-model' {
 	    Field = 0,
 	    Form = 1,
 	    FormArray = 2,
-	    FormProperty = 3,
+	    FormProperty = 3
 	}
 	export type ValidationBuilderArg<T = any> = (builder: ValidationBuilder<T>, model?: T, settings?: any) => void;
 	export interface Field {
@@ -75,13 +76,13 @@ declare module 'fw-model' {
 	    protected copyFields(src: any): void;
 	}
 	export function cloneOf<T>(modelType: makerOf<T>, instance: T): T;
-	export function nameOf<T>(expr: (T) => any): string;
+	export function nameOf<T>(expr: (T: any) => any): string;
 	export class ModeledFormSetup<T> {
 	    private _fields;
 	    requiredField(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]): void;
 	    field(fs: (obj: T) => any, friendly: string, ...builders: ValidationBuilderArg<T>[]): void;
-	    form<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
-	    formArray<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
+	    form<AnotherT>(fs: (obj: T) => AnotherT, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
+	    formArray<AnotherT>(fs: (obj: T) => AnotherT[], friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
 	    formProperty<AnotherT>(fs: (obj: T) => any, friendly: string, formCreator: (thing: AnotherT) => FormForType<AnotherT>): void;
 	    getFields(): Field[];
 	}

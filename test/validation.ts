@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { Form, field } from "../src/index";
-import { inRange, isEmail, isInteger, isMinLength, isNumber, isUrl } from "../src/validators";
+import { inRange, isEmail, isInteger, isMinLength, isNumber, isUrl, doesNotContainCharacters } from "../src/validators";
 
 class CustomFormWithValidate extends Form {
   constructor(private shouldAddToValidation = true) { super(); }
@@ -63,6 +63,26 @@ describe("validation", () => {
     });
   });
 
+  describe("doesNotContainCharacters validator", () => {
+    let validator;
+
+    beforeEach(() => {
+      validator = doesNotContainCharacters('z');
+    });
+
+    describe("when the input contains the forbidden character", () => {
+      it("should not validate the value", () => {
+        assert.isNotNull(validator('hello worldz!'));
+      });
+    });
+
+    describe("when the input does not contain the forbidden character", () => {
+      it("should validate the value", () => {
+        assert.isNull(validator('hello world'));
+      });
+    });
+  });
+
   describe("isUrl", () => {
     it("should validate as a hostname when no options", () => {
       assert.isNull(isUrl()('example.com'));
@@ -114,7 +134,7 @@ describe("validation", () => {
       it("should validate a URL with a tld, a protocol, a path & a port", () => {
         assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true, requireTld: true })("http://example.com:8000/path/here/to/somewhere"));
       });
-      
+
       it("should invalidate a URL without a tld", () => {
         assert.isNotNull(isUrl({ requireTld: true })("example"));
       });

@@ -67,7 +67,7 @@ describe("validation", () => {
     let validator;
 
     beforeEach(() => {
-      validator = doesNotContainCharacters('z-');
+      validator = doesNotContainCharacters('z');
     });
 
     describe("when the input contains the forbidden character", () => {
@@ -134,7 +134,7 @@ describe("validation", () => {
       it("should validate a URL with a tld, a protocol, a path & a port", () => {
         assert.isNull(isUrl({ allowedProtocols: [ "http", "https" ], allowPath: true, allowPort: true, requireTld: true })("http://example.com:8000/path/here/to/somewhere"));
       });
-      
+
       it("should invalidate a URL without a tld", () => {
         assert.isNotNull(isUrl({ requireTld: true })("example"));
       });

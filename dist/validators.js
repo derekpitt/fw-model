@@ -114,6 +114,13 @@ var isChecked = function isChecked(input) {
     return input === true ? null : "Required";
 };
 exports.isChecked = isChecked;
+var doesNotContainCharacters = function doesNotContainCharacters(charactersRegex) {
+    return function (input) {
+        var globalRegex = new RegExp(charactersRegex, 'g');
+        return globalRegex.test(input) ? "The value cannot contain the character" + (charactersRegex.length > 1 ? 's' : '') + " '" + charactersRegex + "'." : null;
+    };
+};
+exports.doesNotContainCharacters = doesNotContainCharacters;
 // wrap can take in simple validators and convert them to validation builder
 var wrap = function wrap() {
     for (var _len = arguments.length, validators = Array(_len), _key = 0; _key < _len; _key++) {

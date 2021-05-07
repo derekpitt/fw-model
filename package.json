@@ -1,5 +1,5 @@
 {
-  "name": "fw-model",
+  "name": "@learningmachine/fw-model",
   "version": "0.3.6",
   "description": "",
   "main": "dist/index.js",

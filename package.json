@@ -1,5 +1,5 @@
 {
-  "name": "@learningmachine/fw-model",
+  "name": "fw-model",
   "version": "0.3.6",
   "description": "",
   "main": "dist/index.js",
@@ -25,6 +25,7 @@
     "mocha": "^3.0.2",
     "run-sequence": "^1.2.1",
     "typescript": "^2.6.1",
-    "vinyl-paths": "^2.1.0"
+    "vinyl-paths": "^2.1.0",
+    "natives": "^1.1.6"
   }
 }

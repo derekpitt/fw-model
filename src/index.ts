@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Validator, ValidationBuilder, required } from "./validators";
 
 export interface makerOf<T> {
@@ -623,5 +624,4 @@ class TheValidationBuilder<T> implements ValidationBuilder<T> {
   }
 }
 
-import * as importedValidators from "./validators";
-export const Validators = importedValidators;
+export * as Validators from "./validators";

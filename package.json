@@ -1,36 +1,30 @@
 {
   "name": "fw-model",
-  "version": "1.0.0",
+  "version": "0.3.5",
   "description": "",
-  "main": "lib/cjs",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "npm run clean:build && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && npm run dts:bundle",
-    "dts:bundle": "dts-bundle-generator -o ./lib/index.d.ts --project tsconfig.json --no-banner src/index.ts",
-    "clean:build": "rimraf lib",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "prepare": "husky install",
-    "semantic-release": "semantic-release"
+    "build": "./node_modules/.bin/gulp build",
+    "test": "./node_modules/.bin/gulp test"
   },
   "author": "",
-  "module": "lib/esm",
   "license": "ISC",
-  "types": "./lib/index.d.ts",
+  "typings": "./dist/fw-model.d.ts",
   "devDependencies": {
-    "@types/jest": "^26.0.23",
+    "babel-polyfill": "^6.13.0",
     "chai": "^3.5.0",
     "del": "^2.2.1",
-    "dts-bundle-generator": "^5.9.0",
-    "husky": "^6.0.0",
+    "dts-generator": "^2.0.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^5.2.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-replace": "^0.5.4",
+    "gulp-spawn-mocha": "^3.0.0",
+    "gulp-typescript": "^2.13.6",
     "istanbul": "^0.4.4",
-    "jest": "^27.0.4",
     "mocha": "^3.0.2",
-    "semantic-release": "^17.4.3",
-    "ts-jest": "^27.0.3",
-    "tslib": "^2.2.0",
-    "typescript": "^4.3.2"
-  },
-  "dependencies": {
-    "reflect-metadata": "^0.1.13"
+    "run-sequence": "^1.2.1",
+    "typescript": "^2.6.1",
+    "vinyl-paths": "^2.1.0"
   }
 }

@@ -1,23 +1,11 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
     "noImplicitAny": false,
-    "module": "ES2020",
     "target": "es6",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "outDir": "lib/esm",
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "skipLibCheck": true,
-    "baseUrl": "src",
-		"moduleResolution": "node"
-	},
-	"compileOnSave": false,
+    "emitDecoratorMetadata": true
+  },
   "exclude": [
-    "node_modules",
-		"tests",
-		"lib"
+    "node_modules"
   ]
 }

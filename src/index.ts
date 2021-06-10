@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { Validator, ValidationBuilder, required } from "./validators";
 
 export interface makerOf<T> {
@@ -117,6 +116,8 @@ export function createFrom<T>(cl: makerOf<T>, data: any, parent = null): T {
 
   return instance;
 }
+
+export type Validator = (input: any, model?: any, settings?: any) => string;
 
 export enum FieldType {
   Field,
@@ -624,4 +625,5 @@ class TheValidationBuilder<T> implements ValidationBuilder<T> {
   }
 }
 
-export * as Validators from "./validators";
+import * as importedValidators from "./validators";
+export const Validators = importedValidators;

@@ -1,0 +1,8 @@
+*.yml
+*.config.js
+.nvmrc
+.github/
+.eslintrc.js
+tsconfig.*
+
+.idea

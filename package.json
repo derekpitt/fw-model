@@ -20,7 +20,7 @@
     "gulp-clean": "^0.3.2",
     "gulp-replace": "^0.5.4",
     "gulp-spawn-mocha": "^3.0.0",
-    "gulp-typescript": "^2.13.6",
+    "gulp-typescript": "^6.0.0-alpha.1",
     "istanbul": "^0.4.4",
     "mocha": "^3.0.2",
     "run-sequence": "^1.2.1",
